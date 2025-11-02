@@ -1,0 +1,463 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(250deg, rgb(24, 171, 24), rgb(199, 199, 13));
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.wrapper {
+  width: 100%;
+  max-width: 800px;
+}
+
+.Hero {
+  background: #fff;
+  padding: 40px 30px;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+  animation: popUp 0.6s ease;
+}
+
+/* Navigation */
+nav {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+nav a {
+  color: #444;
+  font-weight: 600;
+  text-decoration: none;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+nav a::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: rgb(24, 171, 24);
+  transition: width 0.3s ease;
+}
+
+nav a:hover::after,
+nav a.active::after {
+  width: 100%;
+}
+
+nav a.active {
+  color: rgb(24, 171, 24);
+}
+
+/* Forms */
+.form-container {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.form-wrapper {
+  display: flex;
+  transition: transform 0.6s ease-in-out;
+  width: 200%;
+}
+
+.form-wrapper.shift-right {
+  transform: translateX(-50%);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 50%;
+  padding: 0 20px;
+  transition: opacity 0.5s ease;
+}
+
+h3 {
+  text-align: center;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+/* Inputs */
+.input {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+  padding: 8px 5px;
+  gap: 8px;
+  transition: border-color 0.3s ease;
+}
+
+.input:hover {
+  border-bottom: 1px solid rgb(24, 171, 24);
+}
+
+.input input {
+  border: none;
+  outline: none;
+  flex: 1;
+  padding: 8px;
+  font-size: 15px;
+}
+
+.input svg {
+  color: #555;
+  transition: transform 0.3s ease;
+}
+
+.input:hover svg {
+  transform: scale(1.1);
+  color: rgb(24, 171, 24);
+}
+
+/* Buttons */
+button {
+  padding: 12px;
+  border: none;
+  background: rgb(24, 171, 24);
+  color: white;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background: rgb(18, 140, 18);
+  transform: scale(1.03);
+}
+
+/* Fade animations */
+.fade-in {
+  opacity: 1;
+  animation: fadeIn 0.6s ease;
+}
+
+.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.date-input {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 8px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes popUp {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .Hero {
+    padding: 25px 15px;
+  }
+
+  .form-wrapper {
+    flex-direction: column;
+    width: 100%;
+    transform: none !important;
+  }
+
+  form {
+    width: 100%;
+  }
+
+  nav {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .Hero {
+    border-radius: 10px;
+  }
+
+  nav {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  button {
+    width: 100%;
+  }
+}
+.image{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+img{
+    margin: auto;
+}
+.welcome-banner {
+  background: rgb(24, 171, 24);
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.2rem;
+  text-align: center;
+  padding: 15px 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.7s ease;
+}
+/* Notification Styles */
+.notification {
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  position: relative;
+  animation: fadeIn 0.5s ease;
+  font-weight: 600;
+  text-align: center;
+}
+
+.notification.success {
+  background-color: rgb(24, 171, 24);
+  color: #fff;
+}
+
+.notification.error {
+  background-color: #e74c3c;
+  color: #fff;
+}
+
+.notification .close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+}
+/* ID Card Styles */
+.id-card {
+  background: #fff;
+  border-radius: 15px;
+  padding: 30px 25px;
+  max-width: 400px;
+  margin: 50px auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  animation: popUp 0.6s ease;
+}
+
+.id-card-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.id-logo {
+  width: 60px;
+  border-radius: 50%;
+}
+
+.id-card-body {
+  margin-top: 20px;
+  text-align: left;
+}
+
+.id-card-body p {
+  font-size: 16px;
+  margin: 8px 0;
+  color: #333;
+}
+
+.id-card button {
+  margin-top: 20px;
+  padding: 10px 15px;
+  background: rgb(24, 171, 24);
+  color: #fff;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+}
+
+.id-card button:hover {
+  background: rgb(18, 140, 18);
+  transform: scale(1.03);
+}
+/* Reset & Base */
+* { padding: 0; margin: 0; box-sizing: border-box; }
+body { font-family: "Poppins", sans-serif; background: linear-gradient(250deg, #18ab18, #c7c70d); }
+
+/* Notifications */
+.notification {
+  width: 350px;
+  margin: 20px auto;
+  padding: 12px 20px;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  position: relative;
+  animation: fadeIn 0.5s ease;
+}
+.notification.success { background-color: #4caf50; }
+.notification.error { background-color: #f44336; }
+.notification .close { position: absolute; top: 2px; right: 8px; cursor: pointer; font-weight: bold; }
+
+/* Containers */
+.container { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+.wrapper { width: 100%; max-width: 800px; }
+.Hero {
+  background: #fff;
+  padding: 40px 30px;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  overflow: hidden;
+  position: relative;
+  animation: popUp 0.6s ease;
+}
+.image { display: flex; justify-content: center; margin-bottom: 20px; }
+.image img { width: 70px; }
+
+/* Navigation */
+nav { display: flex; justify-content: space-around; margin-bottom: 30px; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+nav a { color: #444; font-weight: 600; text-decoration: none; position: relative; transition: color 0.3s ease; }
+nav a.active { color: #18ab18; }
+nav a::after { content: ""; position: absolute; bottom: -3px; left: 0; width: 0; height: 2px; background: #18ab18; transition: width 0.3s ease; }
+nav a.active::after, nav a:hover::after { width: 100%; }
+
+/* Forms */
+.form-container { width: 100%; overflow: hidden; position: relative; }
+.form-wrapper { display: flex; transition: transform 0.6s ease-in-out; width: 200%; }
+.form-wrapper.shift-right { transform: translateX(-50%); }
+form { display: flex; flex-direction: column; gap: 18px; width: 50%; padding: 0 20px; transition: opacity 0.5s ease; }
+h3 { text-align: center; margin-bottom: 10px; color: #333; }
+.input { display: flex; align-items: center; border-bottom: 1px solid #ccc; padding: 8px 5px; gap: 8px; transition: border-color 0.3s ease; }
+.input:hover { border-bottom: 1px solid #18ab18; }
+.input input { border: none; outline: none; flex: 1; padding: 8px; font-size: 15px; }
+.input svg { color: #555; transition: transform 0.3s ease; }
+.input:hover svg { transform: scale(1.1); color: #18ab18; }
+button {
+  padding: 12px;
+  border: none;
+  background: #18ab18;
+  color: white;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+button:hover { background: #12901a; transform: scale(1.03); }
+
+/* Date Input */
+.date-input { border: 1px solid #ccc; border-radius: 5px; padding: 8px; }
+
+/* Fade Animations */
+.fade-in { opacity: 1; animation: fadeIn 0.6s ease; }
+.fade-out { opacity: 0; pointer-events: none; }
+
+/* Keyframes */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes popUp {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ID Card UI/UX */
+.id-card-real {
+  width: 380px;
+  background: linear-gradient(to bottom, #fff, #f1f1f1);
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  overflow: hidden;
+  text-align: center;
+  padding-bottom: 20px;
+}
+.id-card-header {
+  background: #18ab18;
+  color: white;
+  padding: 15px;
+  position: relative;
+}
+.id-card-header h2 { margin: 5px 0; font-size: 20px; }
+.id-card-header .id-title {
+  position: absolute;
+  bottom: 5px;
+  right: 15px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+.school-logo { width: 50px; position: absolute; top: 10px; left: 15px; border-radius: 8px; }
+.id-card-body { display: flex; padding: 15px; gap: 15px; align-items: center; }
+.avatar-section .avatar { width: 80px; height: 80px; border-radius: 50%; border: 2px solid #18ab18; }
+.details-section { text-align: left; font-size: 14px; flex: 1; }
+.details-section p { margin: 6px 0; display: flex; align-items: center; gap: 6px; }
+.id-card-footer { margin-top: 10px; display: flex; flex-direction: column; align-items: center; }
+.id-card-footer button { width: 100px; margin-top: 10px; }
+
+/* Barcode */
+.barcode {
+  width: 80%;
+  height: 30px;
+  background: repeating-linear-gradient(90deg, #000, #000 2px, #fff 2px, #fff 4px);
+  margin: 10px auto 0;
+  border-radius: 4px;
+}
+
+/* Responsive */
+@media(max-width: 480px) {
+  .form-wrapper { flex-direction: column; width: 100%; transform: none !important; }
+  form { width: 100%; }
+  button { width: 100%; }
+}
+
+
+/* Optional: fadeIn animation already exists, reused here */
+
+
+/* Optional: fadeIn animation already exists in your CSS, reuse it */
