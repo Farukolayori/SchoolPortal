@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "./App.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faEnvelope, faEye, faCalendar } from "@fortawesome/free-solid-svg-icons";
@@ -12,7 +12,6 @@ const App = () => {
   const [notification, setNotification] = useState<{ message: string; type: string } | null>(null);
   const [user, setUser] = useState<any>(null);
 
-  // ------------------- LOGIN HANDLER -------------------
   const handleLogin = async (e: any) => {
     e.preventDefault();
     const form = e.target;
@@ -135,7 +134,6 @@ const App = () => {
             </div>
           )}
 
-          {/* Navigation */}
           <nav>
             <a href="#" className={activeForm === "login" ? "active" : ""} onClick={() => setActiveForm("login")}>
               Login
