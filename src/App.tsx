@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"; // added useEffect
+import { useState, useEffect } from "react";
 import "./App.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faEnvelope, faEye, faCalendar } from "@fortawesome/free-solid-svg-icons";
@@ -6,7 +6,7 @@ import polyimage from "./assets/ibadan-polythecnic.jpeg";
 import defaultAvatar from "./assets/avatar.png";
 
 const App = () => {
-  const [loading, setLoading] = useState(true); // <-- new loading state
+  const [loading, setLoading] = useState(true);
   const [activeForm, setActiveForm] = useState("login");
   const [showPasswordLogin, setShowPasswordLogin] = useState(false);
   const [showPasswordSignUp, setShowPasswordSignUp] = useState(false);
@@ -15,10 +15,17 @@ const App = () => {
 
   // ------------------- LOADING EFFECT -------------------
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200); // 1.2s loading
+    const timer = setTimeout(() => setLoading(false), 1200);
     return () => clearTimeout(timer);
   }, []);
 
+  // ------------------- NOTIFICATION UTILITY -------------------
+  const showNotification = (message: string, type: string, duration = 3000) => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), duration);
+  };
+
+  // ------------------- LOGIN -------------------
   const handleLogin = async (e: any) => {
     e.preventDefault();
     const form = e.target;
@@ -35,18 +42,19 @@ const App = () => {
       const data = await res.json();
 
       if (res.ok) {
-        setNotification({ message: `Login successful! Welcome ${data.user.firstName}`, type: "success" });
+        showNotification(`Login successful! Welcome ${data.user.firstName}`, "success");
         setUser(data.user);
         form.reset();
       } else {
-        setNotification({ message: data.message, type: "error" });
+        showNotification(data.message, "error");
       }
     } catch (err) {
       console.error(err);
-      setNotification({ message: "Something went wrong!", type: "error" });
+      showNotification("Something went wrong!", "error");
     }
   };
 
+  // ------------------- SIGNUP -------------------
   const handleSignUp = async (e: any) => {
     e.preventDefault();
     const form = e.target;
@@ -66,21 +74,22 @@ const App = () => {
       const data = await res.json();
 
       if (res.ok) {
-        setNotification({ message: `Registration successful! Welcome ${firstName}`, type: "success" });
+        showNotification(`Registration successful! Welcome ${firstName}`, "success");
         form.reset();
         setActiveForm("login");
       } else {
-        setNotification({ message: data.message, type: "error" });
+        showNotification(data.message, "error");
       }
     } catch (err) {
       console.error(err);
-      setNotification({ message: "Something went wrong!", type: "error" });
+      showNotification("Something went wrong!", "error");
     }
   };
 
+  // ------------------- LOGOUT -------------------
   const handleLogout = () => {
     setUser(null);
-    setNotification({ message: "Logged out successfully", type: "success" });
+    showNotification("Logged out successfully", "success");
   };
 
   // ------------------- LOADING SCREEN -------------------
@@ -93,7 +102,7 @@ const App = () => {
     );
   }
 
-  // ------------------- UI -------------------
+  // ------------------- USER ID CARD -------------------
   if (user) {
     return (
       <div className="container">
@@ -117,9 +126,15 @@ const App = () => {
               <img src={defaultAvatar} alt="Avatar" className="avatar" />
             </div>
             <div className="details-section">
-              <p><FontAwesomeIcon icon={faUser} /> {user.firstName} {user.lastName}</p>
-              <p><FontAwesomeIcon icon={faEnvelope} /> {user.email}</p>
-              <p><FontAwesomeIcon icon={faCalendar} /> {new Date(user.dateStarted).toLocaleDateString()}</p>
+              <p>
+                <FontAwesomeIcon icon={faUser} /> {user.firstName} {user.lastName}
+              </p>
+              <p>
+                <FontAwesomeIcon icon={faEnvelope} /> {user.email}
+              </p>
+              <p>
+                <FontAwesomeIcon icon={faCalendar} /> {new Date(user.dateStarted).toLocaleDateString()}
+              </p>
             </div>
           </div>
           <div className="id-card-footer">
@@ -131,6 +146,7 @@ const App = () => {
     );
   }
 
+  // ------------------- LOGIN / SIGNUP FORM -------------------
   return (
     <div className="container">
       <div className="wrapper">
@@ -168,7 +184,11 @@ const App = () => {
 
                 <div className="input">
                   <input type={showPasswordLogin ? "text" : "password"} placeholder="Password" required />
-                  <FontAwesomeIcon icon={faEye} onClick={() => setShowPasswordLogin(!showPasswordLogin)} style={{ cursor: "pointer" }} />
+                  <FontAwesomeIcon
+                    icon={faEye}
+                    onClick={() => setShowPasswordLogin(!showPasswordLogin)}
+                    style={{ cursor: "pointer" }}
+                  />
                 </div>
 
                 <div className="button">
@@ -192,7 +212,11 @@ const App = () => {
                 </div>
                 <div className="input">
                   <input type={showPasswordSignUp ? "text" : "password"} placeholder="Password" required />
-                  <FontAwesomeIcon icon={faEye} onClick={() => setShowPasswordSignUp(!showPasswordSignUp)} style={{ cursor: "pointer" }} />
+                  <FontAwesomeIcon
+                    icon={faEye}
+                    onClick={() => setShowPasswordSignUp(!showPasswordSignUp)}
+                    style={{ cursor: "pointer" }}
+                  />
                 </div>
                 <p>Date Started</p>
                 <input type="date" className="date-input" required />
