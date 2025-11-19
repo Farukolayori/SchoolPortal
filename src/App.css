@@ -6,11 +6,158 @@
 
 body {
   font-family: "Poppins", sans-serif;
-  background: linear-gradient(250deg, rgb(24, 171, 24), rgb(199, 199, 13));
+  background: linear-gradient(250deg, #18ab18, #c7c70d);
+  min-height: 100vh;
 }
 
+/* ============================================
+   LOADING SCREEN
+============================================ */
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(250deg, #18ab18, #c7c70d);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   TOAST NOTIFICATION - BEAUTIFUL & RESPONSIVE
+============================================ */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 300px;
+  max-width: 90%;
+  padding: 16px 20px;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+  animation: slideInRight 0.4s ease-out, fadeIn 0.4s ease-out;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.notification.success {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  border-left: 5px solid #2e7d32;
+}
+
+.notification.error {
+  background: linear-gradient(135deg, #f44336, #e53935);
+  border-left: 5px solid #c62828;
+}
+
+.notification::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-size: contain;
+  flex-shrink: 0;
+}
+
+.notification.success::before {
+  content: "✓";
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.notification.error::before {
+  content: "✕";
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.notification .close {
+  margin-left: auto;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+  padding: 0 5px;
+  flex-shrink: 0;
+}
+
+.notification .close:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile Toast */
+@media (max-width: 768px) {
+  .notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    min-width: auto;
+    max-width: none;
+    font-size: 14px;
+    padding: 14px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .notification {
+    font-size: 13px;
+    padding: 12px 14px;
+  }
+}
+
+/* ============================================
+   CONTAINER & WRAPPER
+============================================ */
 .container {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
@@ -32,12 +179,25 @@ body {
   animation: popUp 0.6s ease;
 }
 
-/* Navigation */
+.image {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.image img {
+  width: 70px;
+  height: auto;
+}
+
+/* ============================================
+   NAVIGATION
+============================================ */
 nav {
   display: flex;
   justify-content: space-around;
   margin-bottom: 30px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 2px solid #e0e0e0;
   padding-bottom: 10px;
 }
 
@@ -47,29 +207,33 @@ nav a {
   text-decoration: none;
   position: relative;
   transition: color 0.3s ease;
+  padding: 8px 20px;
+}
+
+nav a.active {
+  color: #18ab18;
 }
 
 nav a::after {
   content: "";
   position: absolute;
-  bottom: -3px;
+  bottom: -12px;
   left: 0;
   width: 0;
-  height: 2px;
-  background: rgb(24, 171, 24);
+  height: 3px;
+  background: #18ab18;
   transition: width 0.3s ease;
+  border-radius: 2px;
 }
 
-nav a:hover::after,
-nav a.active::after {
+nav a.active::after,
+nav a:hover::after {
   width: 100%;
 }
 
-nav a.active {
-  color: rgb(24, 171, 24);
-}
-
-/* Forms */
+/* ============================================
+   FORMS
+============================================ */
 .form-container {
   width: 100%;
   overflow: hidden;
@@ -99,20 +263,21 @@ h3 {
   text-align: center;
   margin-bottom: 10px;
   color: #333;
+  font-size: 24px;
 }
 
-/* Inputs */
 .input {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #ccc;
-  padding: 8px 5px;
-  gap: 8px;
+  border-bottom: 2px solid #ccc;
+  padding: 10px 5px;
+  gap: 10px;
   transition: border-color 0.3s ease;
 }
 
-.input:hover {
-  border-bottom: 1px solid rgb(24, 171, 24);
+.input:hover,
+.input:focus-within {
+  border-bottom: 2px solid #18ab18;
 }
 
 .input input {
@@ -121,36 +286,67 @@ h3 {
   flex: 1;
   padding: 8px;
   font-size: 15px;
+  background: transparent;
 }
 
 .input svg {
   color: #555;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+  font-size: 18px;
 }
 
-.input:hover svg {
+.input:hover svg,
+.input:focus-within svg {
   transform: scale(1.1);
-  color: rgb(24, 171, 24);
+  color: #18ab18;
 }
 
-/* Buttons */
 button {
-  padding: 12px;
+  padding: 14px;
   border: none;
-  background: rgb(24, 171, 24);
+  background: #18ab18;
   color: white;
   font-weight: bold;
-  border-radius: 8px;
+  font-size: 16px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(24, 171, 24, 0.3);
 }
 
 button:hover {
-  background: rgb(18, 140, 18);
-  transform: scale(1.03);
+  background: #12901a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(24, 171, 24, 0.4);
 }
 
-/* Fade animations */
+button:active {
+  transform: translateY(0);
+}
+
+/* Date Input */
+.date-input {
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 15px;
+  transition: border-color 0.3s ease;
+  width: 100%;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #18ab18;
+}
+
+form p {
+  margin: -10px 0 -10px 0;
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Fade Animations */
 .fade-in {
   opacity: 1;
   animation: fadeIn 0.6s ease;
@@ -161,13 +357,133 @@ button:hover {
   pointer-events: none;
 }
 
-.date-input {
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 8px;
+/* ============================================
+   ID CARD - RESPONSIVE
+============================================ */
+.id-card-real {
+  width: 100%;
+  max-width: 420px;
+  background: linear-gradient(to bottom, #fff, #f8f8f8);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  text-align: center;
+  padding-bottom: 20px;
+  margin: 0 auto;
 }
 
-/* Animations */
+.id-card-header {
+  background: linear-gradient(135deg, #18ab18, #15951d);
+  color: white;
+  padding: 25px 20px;
+  position: relative;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.id-card-header h2 {
+  margin: 8px 0 5px 0;
+  font-size: 22px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.id-card-header .id-title {
+  font-size: 14px;
+  opacity: 0.9;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.school-logo {
+  width: 60px;
+  height: 60px;
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.id-card-body {
+  display: flex;
+  padding: 25px 20px;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.avatar-section {
+  flex-shrink: 0;
+}
+
+.avatar-section .avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 3px solid #18ab18;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.details-section {
+  text-align: left;
+  font-size: 15px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.details-section p {
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #333;
+  word-break: break-word;
+}
+
+.details-section svg {
+  color: #18ab18;
+  flex-shrink: 0;
+}
+
+.id-card-footer {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.id-card-footer button {
+  width: 120px;
+  margin-top: 15px;
+  padding: 12px;
+}
+
+/* Barcode */
+.barcode {
+  width: 85%;
+  max-width: 280px;
+  height: 35px;
+  background: repeating-linear-gradient(
+    90deg,
+    #000,
+    #000 2px,
+    #fff 2px,
+    #fff 4px
+  );
+  margin: 0 auto;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================
+   KEYFRAME ANIMATIONS
+============================================ */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -190,274 +506,241 @@ button:hover {
   }
 }
 
-/* Responsive Design */
+/* ============================================
+   RESPONSIVE DESIGN
+============================================ */
+
+/* Tablet */
 @media (max-width: 768px) {
   .Hero {
-    padding: 25px 15px;
+    padding: 30px 20px;
+    border-radius: 15px;
+  }
+
+  .image img {
+    width: 60px;
+  }
+
+  h3 {
+    font-size: 22px;
   }
 
   .form-wrapper {
-    flex-direction: column;
     width: 100%;
-    transform: none !important;
+  }
+
+  .form-wrapper.shift-right {
+    transform: none;
   }
 
   form {
     width: 100%;
+    padding: 0 10px;
+  }
+
+  .login.fade-out,
+  .sign-up.fade-out {
+    display: none;
+  }
+
+  nav {
+    gap: 20px;
+  }
+
+  nav a {
+    padding: 8px 15px;
+    font-size: 15px;
+  }
+
+  .id-card-real {
+    max-width: 100%;
+  }
+
+  .id-card-body {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .details-section {
+    text-align: center;
+  }
+
+  .details-section p {
+    justify-content: center;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .container {
+    padding: 10px;
+  }
+
+  .Hero {
+    padding: 25px 15px;
+    border-radius: 12px;
+  }
+
+  .image img {
+    width: 50px;
+  }
+
+  h3 {
+    font-size: 20px;
   }
 
   nav {
     flex-direction: row;
     justify-content: space-between;
-  }
-}
-
-@media (max-width: 480px) {
-  .Hero {
-    border-radius: 10px;
+    margin-bottom: 25px;
   }
 
-  nav {
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
+  nav a {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .input {
+    padding: 8px 5px;
+  }
+
+  .input input {
+    font-size: 14px;
+  }
+
+  .input svg {
+    font-size: 16px;
   }
 
   button {
     width: 100%;
+    padding: 13px;
+    font-size: 15px;
+  }
+
+  .date-input {
+    font-size: 14px;
+    padding: 9px;
+  }
+
+  /* ID Card Mobile */
+  .id-card-real {
+    border-radius: 15px;
+  }
+
+  .id-card-header {
+    padding: 20px 15px;
+  }
+
+  .id-card-header h2 {
+    font-size: 18px;
+    margin-top: 5px;
+  }
+
+  .id-card-header .id-title {
+    font-size: 12px;
+  }
+
+  .school-logo {
+    width: 45px;
+    height: 45px;
+    top: 12px;
+    left: 12px;
+  }
+
+  .id-card-body {
+    padding: 20px 15px;
+    gap: 15px;
+  }
+
+  .avatar-section .avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .details-section {
+    font-size: 14px;
+  }
+
+  .details-section p {
+    margin: 8px 0;
+    gap: 8px;
+  }
+
+  .barcode {
+    height: 30px;
+    width: 90%;
+  }
+
+  .id-card-footer button {
+    width: 100px;
+    padding: 10px;
+    font-size: 14px;
   }
 }
-.image{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-img{
-    margin: auto;
-}
-.welcome-banner {
-  background: rgb(24, 171, 24);
-  color: #fff;
-  font-weight: bold;
-  font-size: 1.2rem;
-  text-align: center;
-  padding: 15px 20px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  animation: fadeIn 0.7s ease;
-}
-/* Notification Styles */
-.notification {
-  padding: 15px 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  position: relative;
-  animation: fadeIn 0.5s ease;
-  font-weight: 600;
-  text-align: center;
+
+/* Extra Small Mobile */
+@media (max-width: 360px) {
+  .Hero {
+    padding: 20px 12px;
+  }
+
+  nav a {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+
+  h3 {
+    font-size: 18px;
+  }
+
+  .input input {
+    font-size: 13px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  .id-card-header h2 {
+    font-size: 16px;
+  }
+
+  .details-section {
+    font-size: 13px;
+  }
 }
 
-.notification.success {
-  background-color: rgb(24, 171, 24);
-  color: #fff;
+/* Landscape Mobile */
+@media (max-height: 600px) and (orientation: landscape) {
+  .container {
+    min-height: auto;
+    padding: 15px;
+  }
+
+  .Hero {
+    padding: 20px 15px;
+  }
+
+  .image {
+    margin-bottom: 10px;
+  }
+
+  nav {
+    margin-bottom: 15px;
+  }
+
+  form {
+    gap: 12px;
+  }
+
+  .id-card-header {
+    padding: 15px;
+  }
+
+  .id-card-body {
+    padding: 15px;
+  }
 }
-
-.notification.error {
-  background-color: #e74c3c;
-  color: #fff;
-}
-
-.notification .close {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 16px;
-}
-/* ID Card Styles */
-.id-card {
-  background: #fff;
-  border-radius: 15px;
-  padding: 30px 25px;
-  max-width: 400px;
-  margin: 50px auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  animation: popUp 0.6s ease;
-}
-
-.id-card-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.id-logo {
-  width: 60px;
-  border-radius: 50%;
-}
-
-.id-card-body {
-  margin-top: 20px;
-  text-align: left;
-}
-
-.id-card-body p {
-  font-size: 16px;
-  margin: 8px 0;
-  color: #333;
-}
-
-.id-card button {
-  margin-top: 20px;
-  padding: 10px 15px;
-  background: rgb(24, 171, 24);
-  color: #fff;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
-  border: none;
-}
-
-.id-card button:hover {
-  background: rgb(18, 140, 18);
-  transform: scale(1.03);
-}
-/* Reset & Base */
-* { padding: 0; margin: 0; box-sizing: border-box; }
-body { font-family: "Poppins", sans-serif; background: linear-gradient(250deg, #18ab18, #c7c70d); }
-
-/* Notifications */
-.notification {
-  width: 350px;
-  margin: 20px auto;
-  padding: 12px 20px;
-  border-radius: 8px;
-  color: white;
-  font-weight: bold;
-  text-align: center;
-  position: relative;
-  animation: fadeIn 0.5s ease;
-}
-.notification.success { background-color: #4caf50; }
-.notification.error { background-color: #f44336; }
-.notification .close { position: absolute; top: 2px; right: 8px; cursor: pointer; font-weight: bold; }
-
-/* Containers */
-.container { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-.wrapper { width: 100%; max-width: 800px; }
-.Hero {
-  background: #fff;
-  padding: 40px 30px;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  overflow: hidden;
-  position: relative;
-  animation: popUp 0.6s ease;
-}
-.image { display: flex; justify-content: center; margin-bottom: 20px; }
-.image img { width: 70px; }
-
-/* Navigation */
-nav { display: flex; justify-content: space-around; margin-bottom: 30px; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
-nav a { color: #444; font-weight: 600; text-decoration: none; position: relative; transition: color 0.3s ease; }
-nav a.active { color: #18ab18; }
-nav a::after { content: ""; position: absolute; bottom: -3px; left: 0; width: 0; height: 2px; background: #18ab18; transition: width 0.3s ease; }
-nav a.active::after, nav a:hover::after { width: 100%; }
-
-/* Forms */
-.form-container { width: 100%; overflow: hidden; position: relative; }
-.form-wrapper { display: flex; transition: transform 0.6s ease-in-out; width: 200%; }
-.form-wrapper.shift-right { transform: translateX(-50%); }
-form { display: flex; flex-direction: column; gap: 18px; width: 50%; padding: 0 20px; transition: opacity 0.5s ease; }
-h3 { text-align: center; margin-bottom: 10px; color: #333; }
-.input { display: flex; align-items: center; border-bottom: 1px solid #ccc; padding: 8px 5px; gap: 8px; transition: border-color 0.3s ease; }
-.input:hover { border-bottom: 1px solid #18ab18; }
-.input input { border: none; outline: none; flex: 1; padding: 8px; font-size: 15px; }
-.input svg { color: #555; transition: transform 0.3s ease; }
-.input:hover svg { transform: scale(1.1); color: #18ab18; }
-button {
-  padding: 12px;
-  border: none;
-  background: #18ab18;
-  color: white;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-button:hover { background: #12901a; transform: scale(1.03); }
-
-/* Date Input */
-.date-input { border: 1px solid #ccc; border-radius: 5px; padding: 8px; }
-
-/* Fade Animations */
-.fade-in { opacity: 1; animation: fadeIn 0.6s ease; }
-.fade-out { opacity: 0; pointer-events: none; }
-
-/* Keyframes */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes popUp {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-/* ID Card UI/UX */
-.id-card-real {
-  width: 380px;
-  background: linear-gradient(to bottom, #fff, #f1f1f1);
-  border-radius: 15px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-  overflow: hidden;
-  text-align: center;
-  padding-bottom: 20px;
-}
-.id-card-header {
-  background: #18ab18;
-  color: white;
-  padding: 15px;
-  position: relative;
-}
-.id-card-header h2 { margin: 5px 0; font-size: 20px; }
-.id-card-header .id-title {
-  position: absolute;
-  bottom: 5px;
-  right: 15px;
-  font-size: 14px;
-  opacity: 0.8;
-}
-.school-logo { width: 50px; position: absolute; top: 10px; left: 15px; border-radius: 8px; }
-.id-card-body { display: flex; padding: 15px; gap: 15px; align-items: center; }
-.avatar-section .avatar { width: 80px; height: 80px; border-radius: 50%; border: 2px solid #18ab18; }
-.details-section { text-align: left; font-size: 14px; flex: 1; }
-.details-section p { margin: 6px 0; display: flex; align-items: center; gap: 6px; }
-.id-card-footer { margin-top: 10px; display: flex; flex-direction: column; align-items: center; }
-.id-card-footer button { width: 100px; margin-top: 10px; }
-
-/* Barcode */
-.barcode {
-  width: 80%;
-  height: 30px;
-  background: repeating-linear-gradient(90deg, #000, #000 2px, #fff 2px, #fff 4px);
-  margin: 10px auto 0;
-  border-radius: 4px;
-}
-
-/* Responsive */
-@media(max-width: 480px) {
-  .form-wrapper { flex-direction: column; width: 100%; transform: none !important; }
-  form { width: 100%; }
-  button { width: 100%; }
-}
-
-
-/* Optional: fadeIn animation already exists, reused here */
-
-
-/* Optional: fadeIn animation already exists in your CSS, reuse it */

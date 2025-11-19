@@ -1,16 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; // added useEffect
 import "./App.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faEnvelope, faEye, faCalendar } from "@fortawesome/free-solid-svg-icons";
 import polyimage from "./assets/ibadan-polythecnic.jpeg";
-import defaultAvatar from "./assets/avatar.png"; // Add a default avatar in assets folder
+import defaultAvatar from "./assets/avatar.png";
 
 const App = () => {
+  const [loading, setLoading] = useState(true); // <-- new loading state
   const [activeForm, setActiveForm] = useState("login");
   const [showPasswordLogin, setShowPasswordLogin] = useState(false);
   const [showPasswordSignUp, setShowPasswordSignUp] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: string } | null>(null);
   const [user, setUser] = useState<any>(null);
+
+  // ------------------- LOADING EFFECT -------------------
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1200); // 1.2s loading
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleLogin = async (e: any) => {
     e.preventDefault();
@@ -19,7 +26,7 @@ const App = () => {
     const password = form[1].value;
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch("https://portal-backend-xrww.onrender.com/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -40,7 +47,6 @@ const App = () => {
     }
   };
 
-  // ------------------- SIGN-UP HANDLER -------------------
   const handleSignUp = async (e: any) => {
     e.preventDefault();
     const form = e.target;
@@ -51,7 +57,7 @@ const App = () => {
     const dateStarted = form[4].value;
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
+      const res = await fetch("https://portal-backend-xrww.onrender.com/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firstName, lastName, email, password, dateStarted }),
@@ -72,11 +78,20 @@ const App = () => {
     }
   };
 
-  // ------------------- LOGOUT -------------------
   const handleLogout = () => {
     setUser(null);
     setNotification({ message: "Logged out successfully", type: "success" });
   };
+
+  // ------------------- LOADING SCREEN -------------------
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   // ------------------- UI -------------------
   if (user) {
@@ -124,7 +139,6 @@ const App = () => {
             <img src={polyimage} alt="School Logo" width={70} />
           </div>
 
-          {/* Notification */}
           {notification && (
             <div className={`notification ${notification.type}`}>
               {notification.message}
@@ -143,10 +157,8 @@ const App = () => {
             </a>
           </nav>
 
-          {/* Animated Forms */}
           <div className="form-container">
             <div className={`form-wrapper ${activeForm === "signup" ? "shift-right" : ""}`}>
-              {/* Login Form */}
               <form className={`login ${activeForm === "login" ? "fade-in" : "fade-out"}`} onSubmit={handleLogin}>
                 <h3>Log In</h3>
                 <div className="input">
@@ -164,7 +176,6 @@ const App = () => {
                 </div>
               </form>
 
-              {/* Sign-Up Form */}
               <form className={`sign-up ${activeForm === "signup" ? "fade-in" : "fade-out"}`} onSubmit={handleSignUp}>
                 <h3>Sign Up</h3>
                 <div className="input">
