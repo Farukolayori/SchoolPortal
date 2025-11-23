@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import "./App.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faEnvelope, faEye, faCalendar } from "@fortawesome/free-solid-svg-icons";
-import polyimage from "./assets/ibadan-polythecnic.jpeg";
-import defaultAvatar from "./assets/avatar.png";
+import './App.css'
+
+// Default images as placeholders
+const polyimage = "https://images.unsplash.com/photo-1562774053-701939374585?w=400&h=400&fit=crop";
+const defaultAvatar = "https://ui-avatars.com/api/?name=Student&size=200&background=18ab18&color=fff";
 
 const App = () => {
   const [loading, setLoading] = useState(true);
@@ -12,6 +14,8 @@ const App = () => {
   const [showPasswordSignUp, setShowPasswordSignUp] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: string } | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [profileImage, setProfileImage] = useState<string>("");
 
   // ------------------- LOADING EFFECT -------------------
   useEffect(() => {
@@ -62,13 +66,14 @@ const App = () => {
     const lastName = form[1].value;
     const email = form[2].value;
     const password = form[3].value;
-    const dateStarted = form[4].value;
+    const dateStarted = form[4].value; // ✅ Index changed - no more role field
 
     try {
       const res = await fetch("https://portal-backend-xrww.onrender.com/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName, email, password, dateStarted }),
+        body: JSON.stringify({ firstName, lastName, email, password, dateStarted, profileImage }),
+        // ✅ Removed role - backend will default to 'user'
       });
 
       const data = await res.json();
@@ -76,6 +81,7 @@ const App = () => {
       if (res.ok) {
         showNotification(`Registration successful! Welcome ${firstName}`, "success");
         form.reset();
+        setProfileImage("");
         setActiveForm("login");
       } else {
         showNotification(data.message, "error");
@@ -85,6 +91,39 @@ const App = () => {
       showNotification("Something went wrong!", "error");
     }
   };
+
+  // ------------------- HANDLE IMAGE UPLOAD -------------------
+  const handleImageUpload = (e: any) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // ------------------- FETCH ALL USERS (ADMIN) -------------------
+  const fetchAllUsers = async () => {
+    try {
+      const res = await fetch("https://portal-backend-xrww.onrender.com/api/users");
+      const data = await res.json();
+      if (res.ok) {
+        setAllUsers(data.users || []);
+      }
+    } catch (err) {
+      console.error(err);
+      showNotification("Failed to fetch users", "error");
+    }
+  };
+
+  // Fetch users when admin logs in
+  useEffect(() => {
+    if (user && user.role === "admin") {
+      fetchAllUsers();
+    }
+  }, [user]);
 
   // ------------------- LOGOUT -------------------
   const handleLogout = () => {
@@ -103,7 +142,7 @@ const App = () => {
   }
 
   // ------------------- USER ID CARD -------------------
-  if (user) {
+  if (user && user.role === "user") {
     return (
       <div className="container">
         {notification && (
@@ -123,7 +162,7 @@ const App = () => {
           </div>
           <div className="id-card-body">
             <div className="avatar-section">
-              <img src={defaultAvatar} alt="Avatar" className="avatar" />
+              <img src={user.profileImage || defaultAvatar} alt="Avatar" className="avatar" />
             </div>
             <div className="details-section">
               <p>
@@ -140,6 +179,76 @@ const App = () => {
           <div className="id-card-footer">
             <div className="barcode"></div>
             <button onClick={handleLogout}>Logout</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ------------------- ADMIN DASHBOARD -------------------
+  if (user && user.role === "admin") {
+    return (
+      <div className="container">
+        {notification && (
+          <div className={`notification ${notification.type}`}>
+            {notification.message}
+            <span className="close" onClick={() => setNotification(null)}>
+              &times;
+            </span>
+          </div>
+        )}
+
+        <div className="admin-dashboard">
+          <div className="dashboard-header">
+            <h2>Admin Dashboard</h2>
+            <button onClick={handleLogout}>Logout</button>
+          </div>
+          
+          <div className="dashboard-stats">
+            <div className="stat-card">
+              <h3>{allUsers.length}</h3>
+              <p>Total Users</p>
+            </div>
+            <div className="stat-card">
+              <h3>{allUsers.filter(u => u.role === "user").length}</h3>
+              <p>Students</p>
+            </div>
+            <div className="stat-card">
+              <h3>{allUsers.filter(u => u.role === "admin").length}</h3>
+              <p>Admins</p>
+            </div>
+          </div>
+
+          <div className="users-table-container">
+            <h3>All Users</h3>
+            <div className="users-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Avatar</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Date Started</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allUsers.map((u, index) => (
+                    <tr key={index}>
+                      <td>
+                        <img src={u.profileImage || defaultAvatar} alt="Avatar" className="table-avatar" />
+                      </td>
+                      <td>{u.firstName} {u.lastName}</td>
+                      <td>{u.email}</td>
+                      <td>
+                        <span className={`role-badge ${u.role}`}>{u.role}</span>
+                      </td>
+                      <td>{new Date(u.dateStarted).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -218,6 +327,23 @@ const App = () => {
                     style={{ cursor: "pointer" }}
                   />
                 </div>
+
+                <div className="image-upload-wrapper">
+                  <label htmlFor="profile-image">Profile Image (Optional)</label>
+                  <input 
+                    type="file" 
+                    id="profile-image" 
+                    accept="image/*" 
+                    onChange={handleImageUpload}
+                    className="file-input"
+                  />
+                  {profileImage && (
+                    <div className="image-preview">
+                      <img src={profileImage} alt="Preview" />
+                    </div>
+                  )}
+                </div>
+
                 <p>Date Started</p>
                 <input type="date" className="date-input" required />
                 <div className="button">
