@@ -16,6 +16,7 @@ const App = () => {
   const [user, setUser] = useState<any>(null);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [profileImage, setProfileImage] = useState<string>("");
+  const [dateStarted, setDateStarted] = useState<string>(""); // ✅ NEW: State for date
 
   // ------------------- LOADING EFFECT -------------------
   useEffect(() => {
@@ -46,8 +47,8 @@ const App = () => {
       const data = await res.json();
 
       if (res.ok) {
-        console.log("Login response:", data); // ✅ Debug: Check what backend returns
-        console.log("User role:", data.user.role); // ✅ Debug: Check role specifically
+        console.log("Login response:", data);
+        console.log("User role:", data.user.role);
         showNotification(`Login successful! Welcome ${data.user.firstName}`, "success");
         setUser(data.user);
         form.reset();
@@ -68,15 +69,12 @@ const App = () => {
     const lastName = form[1].value;
     const email = form[2].value;
     const password = form[3].value;
-    const dateStarted = form[4].value;
 
-    // ✅ Debug: Log the date value
-    console.log("Date value:", dateStarted);
-    console.log("Date type:", typeof dateStarted);
+    console.log("Date from state:", dateStarted);
     
-    // ✅ Validate date is not empty
-    if (!dateStarted) {
-      showNotification("Please select a date", "error");
+    // ✅ Validate all fields
+    if (!firstName || !lastName || !email || !password || !dateStarted) {
+      showNotification("Please fill all fields", "error");
       return;
     }
 
@@ -90,7 +88,7 @@ const App = () => {
         profileImage 
       };
       
-      console.log("Sending payload:", payload); // ✅ Debug payload
+      console.log("Sending payload:", payload);
 
       const res = await fetch("https://portal-backend-xrww.onrender.com/api/auth/register", {
         method: "POST",
@@ -104,10 +102,11 @@ const App = () => {
         showNotification(`Registration successful! Welcome ${firstName}`, "success");
         form.reset();
         setProfileImage("");
+        setDateStarted(""); // ✅ Reset date
         setActiveForm("login");
       } else {
         showNotification(data.message, "error");
-        console.error("Registration error:", data); // ✅ Debug error
+        console.error("Registration error:", data);
       }
     } catch (err) {
       console.error(err);
@@ -371,6 +370,8 @@ const App = () => {
                 <input 
                   type="date" 
                   className="date-input" 
+                  value={dateStarted}
+                  onChange={(e) => setDateStarted(e.target.value)}
                   required 
                   max={new Date().toISOString().split('T')[0]}
                 />
