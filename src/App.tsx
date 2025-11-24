@@ -46,6 +46,8 @@ const App = () => {
       const data = await res.json();
 
       if (res.ok) {
+        console.log("Login response:", data); // ✅ Debug: Check what backend returns
+        console.log("User role:", data.user.role); // ✅ Debug: Check role specifically
         showNotification(`Login successful! Welcome ${data.user.firstName}`, "success");
         setUser(data.user);
         form.reset();
@@ -66,14 +68,34 @@ const App = () => {
     const lastName = form[1].value;
     const email = form[2].value;
     const password = form[3].value;
-    const dateStarted = form[4].value; // ✅ Index changed - no more role field
+    const dateStarted = form[4].value;
+
+    // ✅ Debug: Log the date value
+    console.log("Date value:", dateStarted);
+    console.log("Date type:", typeof dateStarted);
+    
+    // ✅ Validate date is not empty
+    if (!dateStarted) {
+      showNotification("Please select a date", "error");
+      return;
+    }
 
     try {
+      const payload = { 
+        firstName, 
+        lastName, 
+        email, 
+        password, 
+        dateStarted,
+        profileImage 
+      };
+      
+      console.log("Sending payload:", payload); // ✅ Debug payload
+
       const res = await fetch("https://portal-backend-xrww.onrender.com/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName, email, password, dateStarted, profileImage }),
-        // ✅ Removed role - backend will default to 'user'
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -85,6 +107,7 @@ const App = () => {
         setActiveForm("login");
       } else {
         showNotification(data.message, "error");
+        console.error("Registration error:", data); // ✅ Debug error
       }
     } catch (err) {
       console.error(err);
@@ -345,7 +368,12 @@ const App = () => {
                 </div>
 
                 <p>Date Started</p>
-                <input type="date" className="date-input" required />
+                <input 
+                  type="date" 
+                  className="date-input" 
+                  required 
+                  max={new Date().toISOString().split('T')[0]}
+                />
                 <div className="button">
                   <button type="submit">Sign Up</button>
                 </div>
