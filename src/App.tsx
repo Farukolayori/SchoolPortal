@@ -1,94 +1,114 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faEnvelope, faEye, faCalendar } from "@fortawesome/free-solid-svg-icons";
-import './App.css'
+import './App.css';
 
 // Default images as placeholders
 const polyimage = "https://images.unsplash.com/photo-1562774053-701939374585?w=400&h=400&fit=crop";
 const defaultAvatar = "https://ui-avatars.com/api/?name=Student&size=200&background=18ab18&color=fff";
 
-const App = () => {
-  const [loading, setLoading] = useState(true);
-  const [activeForm, setActiveForm] = useState("login");
-  const [showPasswordLogin, setShowPasswordLogin] = useState(false);
-  const [showPasswordSignUp, setShowPasswordSignUp] = useState(false);
-  const [notification, setNotification] = useState<{ message: string; type: string } | null>(null);
-  const [user, setUser] = useState<any>(null);
-  const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [profileImage, setProfileImage] = useState<string>("");
-  const [dateStarted, setDateStarted] = useState<string>(""); // ✅ NEW: State for date
+// TypeScript Interfaces
+interface Notification {
+  message: string;
+  type: string;
+}
 
-  // ------------------- LOADING EFFECT -------------------
+interface User {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  dateStarted: string;
+  profileImage?: string;
+}
+
+const App = () => {
+  const [loading, setLoading] = useState<boolean>(true);
+  const [activeForm, setActiveForm] = useState<string>("login");
+  const [showPasswordLogin, setShowPasswordLogin] = useState<boolean>(false);
+  const [showPasswordSignUp, setShowPasswordSignUp] = useState<boolean>(false);
+  const [notification, setNotification] = useState<Notification | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [profileImage, setProfileImage] = useState<string>("");
+  const [dateStarted, setDateStarted] = useState<string>("");
+
+  // ✅ Separate state for login form
+  const [loginEmail, setLoginEmail] = useState<string>("");
+  const [loginPassword, setLoginPassword] = useState<string>("");
+
+  // ✅ Separate state for signup form
+  const [signupFirstName, setSignupFirstName] = useState<string>("");
+  const [signupLastName, setSignupLastName] = useState<string>("");
+  const [signupEmail, setSignupEmail] = useState<string>("");
+  const [signupPassword, setSignupPassword] = useState<string>("");
+
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1200);
     return () => clearTimeout(timer);
   }, []);
 
-  // ------------------- NOTIFICATION UTILITY -------------------
-  const showNotification = (message: string, type: string, duration = 3000) => {
+  const showNotification = (message: string, type: string, duration: number = 3000) => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), duration);
   };
 
-  // ------------------- LOGIN -------------------
-  const handleLogin = async (e: any) => {
+  // ✅ FIXED: Login handler with proper types
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.target;
-    const email = form[0].value;
-    const password = form[1].value;
+
+    console.log("Attempting login with:", { email: loginEmail, password: loginPassword });
 
     try {
       const res = await fetch("https://portal-backend-xrww.onrender.com/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ 
+          email: loginEmail.trim(), 
+          password: loginPassword 
+        }),
       });
 
       const data = await res.json();
+      console.log("Login response:", data);
 
-      if (res.ok) {
-        console.log("Login response:", data);
-        console.log("User role:", data.user.role);
+      if (res.ok && data.user) {
         showNotification(`Login successful! Welcome ${data.user.firstName}`, "success");
         setUser(data.user);
-        form.reset();
+        // Reset form
+        setLoginEmail("");
+        setLoginPassword("");
       } else {
-        showNotification(data.message, "error");
+        showNotification(data.message || "Login failed", "error");
+        console.error("Login error:", data);
       }
     } catch (err) {
-      console.error(err);
-      showNotification("Something went wrong!", "error");
+      console.error("Login exception:", err);
+      showNotification("Network error! Please check your connection.", "error");
     }
   };
 
-  // ------------------- SIGNUP -------------------
-  const handleSignUp = async (e: any) => {
+  // ✅ FIXED: Signup handler with proper types
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.target;
-    const firstName = form[0].value;
-    const lastName = form[1].value;
-    const email = form[2].value;
-    const password = form[3].value;
 
-    console.log("Date from state:", dateStarted);
-    
-    // ✅ Validate all fields
-    if (!firstName || !lastName || !email || !password || !dateStarted) {
-      showNotification("Please fill all fields", "error");
+    if (!signupFirstName || !signupLastName || !signupEmail || !signupPassword || !dateStarted) {
+      showNotification("Please fill all required fields", "error");
       return;
     }
 
     try {
       const payload = { 
-        firstName, 
-        lastName, 
-        email, 
-        password, 
+        firstName: signupFirstName.trim(), 
+        lastName: signupLastName.trim(), 
+        email: signupEmail.trim(), 
+        password: signupPassword, 
         dateStarted,
         profileImage 
       };
       
-      console.log("Sending payload:", payload);
+      console.log("Sending signup payload:", payload);
 
       const res = await fetch("https://portal-backend-xrww.onrender.com/api/auth/register", {
         method: "POST",
@@ -99,24 +119,27 @@ const App = () => {
       const data = await res.json();
 
       if (res.ok) {
-        showNotification(`Registration successful! Welcome ${firstName}`, "success");
-        form.reset();
+        showNotification(`Registration successful! Welcome ${signupFirstName}`, "success");
+        // Reset all signup fields
+        setSignupFirstName("");
+        setSignupLastName("");
+        setSignupEmail("");
+        setSignupPassword("");
         setProfileImage("");
-        setDateStarted(""); // ✅ Reset date
+        setDateStarted("");
         setActiveForm("login");
       } else {
-        showNotification(data.message, "error");
+        showNotification(data.message || "Registration failed", "error");
         console.error("Registration error:", data);
       }
     } catch (err) {
-      console.error(err);
-      showNotification("Something went wrong!", "error");
+      console.error("Signup exception:", err);
+      showNotification("Network error! Please check your connection.", "error");
     }
   };
 
-  // ------------------- HANDLE IMAGE UPLOAD -------------------
-  const handleImageUpload = (e: any) => {
-    const file = e.target.files[0];
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -126,7 +149,6 @@ const App = () => {
     }
   };
 
-  // ------------------- FETCH ALL USERS (ADMIN) -------------------
   const fetchAllUsers = async () => {
     try {
       const res = await fetch("https://portal-backend-xrww.onrender.com/api/users");
@@ -140,20 +162,17 @@ const App = () => {
     }
   };
 
-  // Fetch users when admin logs in
   useEffect(() => {
     if (user && user.role === "admin") {
       fetchAllUsers();
     }
   }, [user]);
 
-  // ------------------- LOGOUT -------------------
   const handleLogout = () => {
     setUser(null);
     showNotification("Logged out successfully", "success");
   };
 
-  // ------------------- LOADING SCREEN -------------------
   if (loading) {
     return (
       <div className="loading-screen">
@@ -163,7 +182,7 @@ const App = () => {
     );
   }
 
-  // ------------------- USER ID CARD -------------------
+  // USER ID CARD
   if (user && user.role === "user") {
     return (
       <div className="container">
@@ -207,7 +226,7 @@ const App = () => {
     );
   }
 
-  // ------------------- ADMIN DASHBOARD -------------------
+  // ADMIN DASHBOARD
   if (user && user.role === "admin") {
     return (
       <div className="container">
@@ -256,7 +275,7 @@ const App = () => {
                 </thead>
                 <tbody>
                   {allUsers.map((u, index) => (
-                    <tr key={index}>
+                    <tr key={u._id || index}>
                       <td>
                         <img src={u.profileImage || defaultAvatar} alt="Avatar" className="table-avatar" />
                       </td>
@@ -277,7 +296,7 @@ const App = () => {
     );
   }
 
-  // ------------------- LOGIN / SIGNUP FORM -------------------
+  // LOGIN / SIGNUP FORM
   return (
     <div className="container">
       <div className="wrapper">
@@ -296,10 +315,18 @@ const App = () => {
           )}
 
           <nav>
-            <a href="#" className={activeForm === "login" ? "active" : ""} onClick={() => setActiveForm("login")}>
+            <a 
+              href="#" 
+              className={activeForm === "login" ? "active" : ""} 
+              onClick={(e) => { e.preventDefault(); setActiveForm("login"); }}
+            >
               Login
             </a>
-            <a href="#" className={activeForm === "signup" ? "active" : ""} onClick={() => setActiveForm("signup")}>
+            <a 
+              href="#" 
+              className={activeForm === "signup" ? "active" : ""} 
+              onClick={(e) => { e.preventDefault(); setActiveForm("signup"); }}
+            >
               Sign-Up
             </a>
           </nav>
@@ -310,11 +337,23 @@ const App = () => {
                 <h3>Log In</h3>
                 <div className="input">
                   <FontAwesomeIcon icon={faEnvelope} />
-                  <input type="email" placeholder="Email" required />
+                  <input 
+                    type="email" 
+                    placeholder="Email" 
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    required 
+                  />
                 </div>
 
                 <div className="input">
-                  <input type={showPasswordLogin ? "text" : "password"} placeholder="Password" required />
+                  <input 
+                    type={showPasswordLogin ? "text" : "password"} 
+                    placeholder="Password" 
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    required 
+                  />
                   <FontAwesomeIcon
                     icon={faEye}
                     onClick={() => setShowPasswordLogin(!showPasswordLogin)}
@@ -331,18 +370,42 @@ const App = () => {
                 <h3>Sign Up</h3>
                 <div className="input">
                   <FontAwesomeIcon icon={faUser} />
-                  <input type="text" placeholder="First Name" required />
+                  <input 
+                    type="text" 
+                    placeholder="First Name" 
+                    value={signupFirstName}
+                    onChange={(e) => setSignupFirstName(e.target.value)}
+                    required 
+                  />
                 </div>
                 <div className="input">
                   <FontAwesomeIcon icon={faUser} />
-                  <input type="text" placeholder="Last Name" required />
+                  <input 
+                    type="text" 
+                    placeholder="Last Name" 
+                    value={signupLastName}
+                    onChange={(e) => setSignupLastName(e.target.value)}
+                    required 
+                  />
                 </div>
                 <div className="input">
                   <FontAwesomeIcon icon={faEnvelope} />
-                  <input type="email" placeholder="Email" required />
+                  <input 
+                    type="email" 
+                    placeholder="Email" 
+                    value={signupEmail}
+                    onChange={(e) => setSignupEmail(e.target.value)}
+                    required 
+                  />
                 </div>
                 <div className="input">
-                  <input type={showPasswordSignUp ? "text" : "password"} placeholder="Password" required />
+                  <input 
+                    type={showPasswordSignUp ? "text" : "password"} 
+                    placeholder="Password" 
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
+                    required 
+                  />
                   <FontAwesomeIcon
                     icon={faEye}
                     onClick={() => setShowPasswordSignUp(!showPasswordSignUp)}
