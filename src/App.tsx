@@ -7,14 +7,14 @@ import './App.css';
 const polyimage = "https://images.unsplash.com/photo-1562774053-701939374585?w=400&h=400&fit=crop";
 const defaultAvatar = "https://ui-avatars.com/api/?name=Student&size=200&background=18ab18&color=fff";
 
-// TypeScript Interfaces
+// TypeScript interfaces
 interface Notification {
   message: string;
-  type: string;
+  type: "success" | "error";
 }
 
 interface User {
-  _id: string;
+  _id?: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -25,7 +25,7 @@ interface User {
 
 const App = () => {
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeForm, setActiveForm] = useState<string>("login");
+  const [activeForm, setActiveForm] = useState<"login" | "signup">("login");
   const [showPasswordLogin, setShowPasswordLogin] = useState<boolean>(false);
   const [showPasswordSignUp, setShowPasswordSignUp] = useState<boolean>(false);
   const [notification, setNotification] = useState<Notification | null>(null);
@@ -34,11 +34,11 @@ const App = () => {
   const [profileImage, setProfileImage] = useState<string>("");
   const [dateStarted, setDateStarted] = useState<string>("");
 
-  // ✅ Separate state for login form
+  // Login form state
   const [loginEmail, setLoginEmail] = useState<string>("");
   const [loginPassword, setLoginPassword] = useState<string>("");
 
-  // ✅ Separate state for signup form
+  // Signup form state
   const [signupFirstName, setSignupFirstName] = useState<string>("");
   const [signupLastName, setSignupLastName] = useState<string>("");
   const [signupEmail, setSignupEmail] = useState<string>("");
@@ -49,47 +49,63 @@ const App = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const showNotification = (message: string, type: string, duration: number = 3000) => {
+  const showNotification = (message: string, type: "success" | "error", duration: number = 3000) => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), duration);
   };
 
-  // ✅ FIXED: Login handler with proper types
+  // Login handler
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    console.log("Attempting login with:", { email: loginEmail, password: loginPassword });
+    const emailValue = loginEmail.trim();
+    const passwordValue = loginPassword;
+
+    console.log("🔐 Attempting login...");
+    console.log("📧 Email:", emailValue);
+    console.log("🔑 Password length:", passwordValue.length);
+
+    if (!emailValue || !passwordValue) {
+      showNotification("Please fill in all fields", "error");
+      return;
+    }
 
     try {
+      console.log("📡 Sending request to backend...");
+      
       const res = await fetch("https://portal-backend-xrww.onrender.com/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ 
-          email: loginEmail.trim(), 
-          password: loginPassword 
+          email: emailValue, 
+          password: passwordValue 
         }),
       });
 
+      console.log("📥 Response status:", res.status);
+      
       const data = await res.json();
-      console.log("Login response:", data);
+      console.log("📦 Response data:", data);
 
       if (res.ok && data.user) {
+        console.log("✅ Login successful!");
         showNotification(`Login successful! Welcome ${data.user.firstName}`, "success");
         setUser(data.user);
-        // Reset form
         setLoginEmail("");
         setLoginPassword("");
       } else {
-        showNotification(data.message || "Login failed", "error");
-        console.error("Login error:", data);
+        console.error("❌ Login failed:", data.message);
+        showNotification(data.message || "Invalid credentials", "error");
       }
     } catch (err) {
-      console.error("Login exception:", err);
-      showNotification("Network error! Please check your connection.", "error");
+      console.error("🚨 Login exception:", err);
+      showNotification("Network error! Check if backend is running.", "error");
     }
   };
 
-  // ✅ FIXED: Signup handler with proper types
+  // Signup handler
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -105,10 +121,10 @@ const App = () => {
         email: signupEmail.trim(), 
         password: signupPassword, 
         dateStarted,
-        profileImage 
+        profileImage: profileImage || undefined
       };
       
-      console.log("Sending signup payload:", payload);
+      console.log("📤 Sending signup payload:", payload);
 
       const res = await fetch("https://portal-backend-xrww.onrender.com/api/auth/register", {
         method: "POST",
@@ -117,10 +133,10 @@ const App = () => {
       });
 
       const data = await res.json();
+      console.log("📥 Signup response:", data);
 
       if (res.ok) {
         showNotification(`Registration successful! Welcome ${signupFirstName}`, "success");
-        // Reset all signup fields
         setSignupFirstName("");
         setSignupLastName("");
         setSignupEmail("");
@@ -170,6 +186,7 @@ const App = () => {
 
   const handleLogout = () => {
     setUser(null);
+    setAllUsers([]);
     showNotification("Logged out successfully", "success");
   };
 
@@ -343,6 +360,7 @@ const App = () => {
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     required 
+                    autoComplete="email"
                   />
                 </div>
 
@@ -353,6 +371,7 @@ const App = () => {
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     required 
+                    autoComplete="current-password"
                   />
                   <FontAwesomeIcon
                     icon={faEye}
