@@ -4,7 +4,7 @@ import { faUser, faEnvelope, faEye, faCalendar } from "@fortawesome/free-solid-s
 import './App.css';
 
 // API Base URL
-const API_BASE_URL = "https://brainbolt-backend-1.onrender.com/api";
+const API_BASE_URL = "https://portal-backend-xrww.onrender.com/api";
 
 // Default images as placeholders
 const polyimage = "https://images.unsplash.com/photo-1562774053-701939374585?w=400&h=400&fit=crop";
