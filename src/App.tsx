@@ -271,7 +271,7 @@ const App = () => {
               <p>Total Users</p>
             </div>
             <div className="stat-card">
-              <h3>{allUsers.filter(u => u.role === "user").length}</h3>
+              <h3>{allUsers.filter(u => u.role === "Students").length}</h3>
               <p>Students</p>
             </div>
             <div className="stat-card">
