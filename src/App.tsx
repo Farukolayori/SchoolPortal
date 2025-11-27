@@ -3,6 +3,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faEnvelope, faEye, faCalendar } from "@fortawesome/free-solid-svg-icons";
 import './App.css';
 
+// API Base URL
+const API_BASE_URL = "https://brainbolt-backend-1.onrender.com/api";
+
 // Default images as placeholders
 const polyimage = "https://images.unsplash.com/photo-1562774053-701939374585?w=400&h=400&fit=crop";
 const defaultAvatar = "https://ui-avatars.com/api/?name=Student&size=200&background=18ab18&color=fff";
@@ -73,15 +76,15 @@ const App = () => {
     try {
       console.log("📡 Sending request to backend...");
       
-      const res = await fetch("https://portal-backend-xrww.onrender.com/api/auth/login", {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { 
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({ 
           email: emailValue, 
           password: passwordValue 
-        }),
+        })
       });
 
       console.log("📥 Response status:", res.status);
@@ -126,7 +129,7 @@ const App = () => {
       
       console.log("📤 Sending signup payload:", payload);
 
-      const res = await fetch("https://portal-backend-xrww.onrender.com/api/auth/register", {
+      const res = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -167,7 +170,7 @@ const App = () => {
 
   const fetchAllUsers = async () => {
     try {
-      const res = await fetch("https://portal-backend-xrww.onrender.com/api/users");
+      const res = await fetch(`${API_BASE_URL}/users`);
       const data = await res.json();
       if (res.ok) {
         setAllUsers(data.users || []);
