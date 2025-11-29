@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faEnvelope, faEye, faCalendar } from "@fortawesome/free-solid-svg-icons";
-import './App.css';
 
 // API Base URL
 const API_BASE_URL = "https://portal-backend-xrww.onrender.com/api";
@@ -24,7 +23,22 @@ interface User {
   role: string;
   dateStarted: string;
   profileImage?: string;
+  department?: string;
+  matricNumber?: string;
 }
+
+const DEPARTMENTS = [
+  "Computer Science",
+  "Electrical Engineering",
+  "Mechanical Engineering",
+  "Civil Engineering",
+  "Business Administration",
+  "Accounting",
+  "Mass Communication",
+  "Architecture",
+  "Estate Management",
+  "Banking and Finance"
+];
 
 const App = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -36,16 +50,18 @@ const App = () => {
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [profileImage, setProfileImage] = useState<string>("");
   const [dateStarted, setDateStarted] = useState<string>("");
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState<string>("");
-  const [loginPassword, setLoginPassword] = useState<string>("");
+  const [loginMatricNumber, setLoginMatricNumber] = useState<string>("");
 
   // Signup form state
   const [signupFirstName, setSignupFirstName] = useState<string>("");
   const [signupLastName, setSignupLastName] = useState<string>("");
   const [signupEmail, setSignupEmail] = useState<string>("");
   const [signupPassword, setSignupPassword] = useState<string>("");
+  const [signupDepartment, setSignupDepartment] = useState<string>("");
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1200);
@@ -62,13 +78,13 @@ const App = () => {
     e.preventDefault();
 
     const emailValue = loginEmail.trim();
-    const passwordValue = loginPassword;
+    const matricValue = loginMatricNumber.trim();
 
     console.log("🔐 Attempting login...");
     console.log("📧 Email:", emailValue);
-    console.log("🔑 Password length:", passwordValue.length);
+    console.log("🎓 Matric Number:", matricValue);
 
-    if (!emailValue || !passwordValue) {
+    if (!emailValue || !matricValue) {
       showNotification("Please fill in all fields", "error");
       return;
     }
@@ -83,7 +99,7 @@ const App = () => {
         },
         body: JSON.stringify({ 
           email: emailValue, 
-          password: passwordValue 
+          matricNumber: matricValue 
         })
       });
 
@@ -97,7 +113,7 @@ const App = () => {
         showNotification(`Login successful! Welcome ${data.user.firstName}`, "success");
         setUser(data.user);
         setLoginEmail("");
-        setLoginPassword("");
+        setLoginMatricNumber("");
       } else {
         console.error("❌ Login failed:", data.message);
         showNotification(data.message || "Invalid credentials", "error");
@@ -112,10 +128,13 @@ const App = () => {
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!signupFirstName || !signupLastName || !signupEmail || !signupPassword || !dateStarted) {
+    if (!signupFirstName || !signupLastName || !signupEmail || !signupPassword || !dateStarted || !signupDepartment) {
       showNotification("Please fill all required fields", "error");
       return;
     }
+
+    // Generate random 10-digit matric number
+    const matricNumber = Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
     try {
       const payload = { 
@@ -124,6 +143,8 @@ const App = () => {
         email: signupEmail.trim(), 
         password: signupPassword, 
         dateStarted,
+        department: signupDepartment,
+        matricNumber,
         profileImage: profileImage || undefined
       };
       
@@ -139,11 +160,12 @@ const App = () => {
       console.log("📥 Signup response:", data);
 
       if (res.ok) {
-        showNotification(`Registration successful! Welcome ${signupFirstName}`, "success");
+        showNotification(`Registration successful! Your matric number is ${matricNumber}. Please save it for login.`, "success", 6000);
         setSignupFirstName("");
         setSignupLastName("");
         setSignupEmail("");
         setSignupPassword("");
+        setSignupDepartment("");
         setProfileImage("");
         setDateStarted("");
         setActiveForm("login");
@@ -178,6 +200,29 @@ const App = () => {
     } catch (err) {
       console.error(err);
       showNotification("Failed to fetch users", "error");
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm("Are you sure you want to delete this user?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        showNotification("User deleted successfully", "success");
+        fetchAllUsers();
+      } else {
+        const data = await res.json();
+        showNotification(data.message || "Failed to delete user", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showNotification("Network error! Please try again.", "error");
     }
   };
 
@@ -232,6 +277,16 @@ const App = () => {
               <p>
                 <FontAwesomeIcon icon={faEnvelope} /> {user.email}
               </p>
+              {user.matricNumber && (
+                <p>
+                  <FontAwesomeIcon icon={faUser} /> Matric: {user.matricNumber}
+                </p>
+              )}
+              {user.department && (
+                <p>
+                  <FontAwesomeIcon icon={faUser} /> {user.department}
+                </p>
+              )}
               <p>
                 <FontAwesomeIcon icon={faCalendar} /> {new Date(user.dateStarted).toLocaleDateString()}
               </p>
@@ -248,6 +303,15 @@ const App = () => {
 
   // ADMIN DASHBOARD
   if (user && user.role === "admin") {
+    const filteredUsers = selectedDepartment === "all" 
+      ? allUsers 
+      : allUsers.filter(u => u.department === selectedDepartment);
+
+    const departmentCounts = DEPARTMENTS.map(dept => ({
+      name: dept,
+      count: allUsers.filter(u => u.department === dept).length
+    }));
+
     return (
       <div className="container">
         {notification && (
@@ -271,7 +335,7 @@ const App = () => {
               <p>Total Users</p>
             </div>
             <div className="stat-card">
-              <h3>{allUsers.filter(u => u.role === "Students").length}</h3>
+              <h3>{allUsers.filter(u => u.role === "Students" || u.role === "user").length}</h3>
               <p>Students</p>
             </div>
             <div className="stat-card">
@@ -280,8 +344,35 @@ const App = () => {
             </div>
           </div>
 
+          <div className="department-stats">
+            <h3>Students by Department</h3>
+            <div className="department-grid">
+              {departmentCounts.map((dept) => (
+                <div key={dept.name} className="department-card">
+                  <h4>{dept.count}</h4>
+                  <p>{dept.name}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="users-table-container">
-            <h3>All Users</h3>
+            <div className="table-header">
+              <h3>All Users</h3>
+              <div className="filter-section">
+                <label>Filter by Department:</label>
+                <select 
+                  className="department-filter" 
+                  value={selectedDepartment}
+                  onChange={(e) => setSelectedDepartment(e.target.value)}
+                >
+                  <option value="all">All Departments</option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
             <div className="users-table">
               <table>
                 <thead>
@@ -289,22 +380,35 @@ const App = () => {
                     <th>Avatar</th>
                     <th>Name</th>
                     <th>Email</th>
+                    <th>Matric No.</th>
+                    <th>Department</th>
                     <th>Role</th>
                     <th>Date Started</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {allUsers.map((u, index) => (
+                  {filteredUsers.map((u, index) => (
                     <tr key={u._id || index}>
                       <td>
                         <img src={u.profileImage || defaultAvatar} alt="Avatar" className="table-avatar" />
                       </td>
                       <td>{u.firstName} {u.lastName}</td>
                       <td>{u.email}</td>
+                      <td>{u.matricNumber || "N/A"}</td>
+                      <td>{u.department || "N/A"}</td>
                       <td>
                         <span className={`role-badge ${u.role}`}>{u.role}</span>
                       </td>
                       <td>{new Date(u.dateStarted).toLocaleDateString()}</td>
+                      <td>
+                        <button 
+                          className="delete-btn"
+                          onClick={() => handleDeleteUser(u._id!)}
+                        >
+                          Delete
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -368,18 +472,14 @@ const App = () => {
                 </div>
 
                 <div className="input">
+                  <FontAwesomeIcon icon={faUser} />
                   <input 
-                    type={showPasswordLogin ? "text" : "password"} 
-                    placeholder="Password" 
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
+                    type="text" 
+                    placeholder="Matric Number" 
+                    value={loginMatricNumber}
+                    onChange={(e) => setLoginMatricNumber(e.target.value)}
                     required 
-                    autoComplete="current-password"
-                  />
-                  <FontAwesomeIcon
-                    icon={faEye}
-                    onClick={() => setShowPasswordLogin(!showPasswordLogin)}
-                    style={{ cursor: "pointer" }}
+                    maxLength={10}
                   />
                 </div>
 
@@ -433,6 +533,21 @@ const App = () => {
                     onClick={() => setShowPasswordSignUp(!showPasswordSignUp)}
                     style={{ cursor: "pointer" }}
                   />
+                </div>
+
+                <div className="select-wrapper">
+                  <label>Department *</label>
+                  <select 
+                    className="role-select" 
+                    value={signupDepartment}
+                    onChange={(e) => setSignupDepartment(e.target.value)}
+                    required
+                  >
+                    <option value="">Select Department</option>
+                    {DEPARTMENTS.map((dept) => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="image-upload-wrapper">
