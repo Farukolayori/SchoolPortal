@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import { 
   FaEye, 
   FaEyeSlash, 
@@ -34,7 +34,7 @@ const ADMIN_SEED = {
 
 // TypeScript interfaces
 interface Notification {
-  message: string | JSX.Element;
+  message: string | ReactNode;  // Changed from JSX.Element to ReactNode
   type: "success" | "error";
 }
 
@@ -103,7 +103,7 @@ const App = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const showNotification = (message: string | JSX.Element, type: "success" | "error", duration: number = 4000) => {
+  const showNotification = (message: string | ReactNode, type: "success" | "error", duration: number = 4000) => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), duration);
   };
