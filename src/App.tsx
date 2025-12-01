@@ -198,7 +198,7 @@ const App = () => {
                   onClick={() => copyToClipboard(matricNumber)}
                   title="Copy to clipboard"
                 >
-                  <FontAwesomeIcon icon={copiedMatric === matricNumber ? faCheck : faCopy} />
+                  {copiedMatric === matricNumber ? '✓' : '📋'}
                 </button>
               </div>
               <p style={{ fontSize: '0.9em', color: '#dc3545', margin: '4px 0 0 0', fontWeight: 'bold' }}>
@@ -517,14 +517,14 @@ const App = () => {
               minWidth: '200px'
             }}>
               <p style={{ margin: '10px 0', display: 'flex', alignItems: 'center', gap: '10px', color: '#333' }}>
-                <FontAwesomeIcon icon={faUser} style={{ color: '#18ab18' }} /> {user.firstName} {user.lastName}
+                👤 {user.firstName} {user.lastName}
               </p>
               <p style={{ margin: '10px 0', display: 'flex', alignItems: 'center', gap: '10px', color: '#333' }}>
-                <FontAwesomeIcon icon={faEnvelope} style={{ color: '#18ab18' }} /> {user.email}
+                ✉️ {user.email}
               </p>
               {user.matricNumber && (
                 <p style={{ margin: '10px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#333' }}>
-                  <FontAwesomeIcon icon={faUser} style={{ color: '#18ab18' }} />
+                  👤
                   <span style={{ fontWeight: 'bold' }}>Matric:</span>
                   <span style={{ fontFamily: 'Courier New, monospace', fontWeight: 'bold' }}>{user.matricNumber}</span>
                   <button
@@ -540,17 +540,17 @@ const App = () => {
                     onClick={() => copyToClipboard(user.matricNumber!)}
                     title="Copy matric number"
                   >
-                    <FontAwesomeIcon icon={copiedMatric === user.matricNumber ? faCheck : faCopy} />
+                    {copiedMatric === user.matricNumber ? '✓' : '📋'}
                   </button>
                 </p>
               )}
               {user.department && (
                 <p style={{ margin: '10px 0', display: 'flex', alignItems: 'center', gap: '10px', color: '#333' }}>
-                  <FontAwesomeIcon icon={faUser} style={{ color: '#18ab18' }} /> {user.department}
+                  🎓 {user.department}
                 </p>
               )}
               <p style={{ margin: '10px 0', display: 'flex', alignItems: 'center', gap: '10px', color: '#333' }}>
-                <FontAwesomeIcon icon={faCalendar} style={{ color: '#18ab18' }} /> {new Date(user.dateStarted).toLocaleDateString()}
+                📅 {new Date(user.dateStarted).toLocaleDateString()}
               </p>
             </div>
           </div>
@@ -838,7 +838,7 @@ const App = () => {
                   gap: '8px'
                 }}
               >
-                <FontAwesomeIcon icon={faPlus} /> Add User
+                ➕ Add User
               </button>
               <button
                 onClick={handleLogout}
@@ -1020,7 +1020,7 @@ const App = () => {
                               onClick={() => copyToClipboard(u.matricNumber!)}
                               title="Copy matric number"
                             >
-                              <FontAwesomeIcon icon={copiedMatric === u.matricNumber ? faCheck : faCopy} />
+                              {copiedMatric === u.matricNumber ? '✓' : '📋'}
                             </button>
                           )}
                         </div>
@@ -1058,7 +1058,7 @@ const App = () => {
                             opacity: u._id === user?._id ? 0.5 : 1
                           }}
                         >
-                          <FontAwesomeIcon icon={faTrash} /> Delete
+                          🗑️ Delete
                         </button>
                       </td>
                     </tr>
@@ -1161,7 +1161,7 @@ const App = () => {
               padding: '10px 5px',
               gap: '10px'
             }}>
-              <FontAwesomeIcon icon={faEnvelope} style={{ color: '#555', fontSize: '18px' }} />
+              <span style={{ color: '#555', fontSize: '18px' }}>✉️</span>
               <input
                 type="email"
                 placeholder="Email"
@@ -1185,7 +1185,7 @@ const App = () => {
               padding: '10px 5px',
               gap: '10px'
             }}>
-              <FontAwesomeIcon icon={faUser} style={{ color: '#555', fontSize: '18px' }} />
+              <span style={{ color: '#555', fontSize: '18px' }}>👤</span>
               <input
                 type="text"
                 placeholder="Matric Number"
@@ -1230,7 +1230,7 @@ const App = () => {
               padding: '10px 5px',
               gap: '10px'
             }}>
-              <FontAwesomeIcon icon={faUser} style={{ color: '#555', fontSize: '18px' }} />
+              <span style={{ color: '#555', fontSize: '18px' }}>👤</span>
               <input
                 type="text"
                 placeholder="First Name"
@@ -1253,7 +1253,7 @@ const App = () => {
               padding: '10px 5px',
               gap: '10px'
             }}>
-              <FontAwesomeIcon icon={faUser} style={{ color: '#555', fontSize: '18px' }} />
+              <span style={{ color: '#555', fontSize: '18px' }}>👤</span>
               <input
                 type="text"
                 placeholder="Last Name"
@@ -1276,7 +1276,7 @@ const App = () => {
               padding: '10px 5px',
               gap: '10px'
             }}>
-              <FontAwesomeIcon icon={faEnvelope} style={{ color: '#555', fontSize: '18px' }} />
+              <span style={{ color: '#555', fontSize: '18px' }}>✉️</span>
               <input
                 type="email"
                 placeholder="Email"
