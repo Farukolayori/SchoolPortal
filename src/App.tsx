@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faEnvelope, faCalendar, faCopy, faCheck, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 // API Base URL
 const API_BASE_URL = "https://portal-backend-xrww.onrender.com/api";
