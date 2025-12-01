@@ -48,6 +48,7 @@ const App = () => {
   const [dateStarted, setDateStarted] = useState<string>("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [copiedMatric, setCopiedMatric] = useState<string | null>(null);
+  const [copiedPassword, setCopiedPassword] = useState<string | null>(null);
   const [showAddUserModal, setShowAddUserModal] = useState<boolean>(false);
 
   // Login form state
@@ -59,6 +60,7 @@ const App = () => {
   const [signupLastName, setSignupLastName] = useState<string>("");
   const [signupEmail, setSignupEmail] = useState<string>("");
   const [signupDepartment, setSignupDepartment] = useState<string>("");
+  const [signupPassword, setSignupPassword] = useState<string>(""); // ADDED: Password field
 
   // Add user form state (admin)
   const [addFirstName, setAddFirstName] = useState<string>("");
@@ -78,16 +80,21 @@ const App = () => {
     setTimeout(() => setNotification(null), duration);
   };
 
-  // Copy matric number to clipboard
-  const copyToClipboard = async (matricNumber: string) => {
+  // Copy to clipboard
+  const copyToClipboard = async (text: string, type: "matric" | "password" = "matric") => {
     try {
-      await navigator.clipboard.writeText(matricNumber);
-      setCopiedMatric(matricNumber);
-      showNotification("Matric number copied to clipboard!", "success", 2000);
-      setTimeout(() => setCopiedMatric(null), 2000);
+      await navigator.clipboard.writeText(text);
+      if (type === "matric") {
+        setCopiedMatric(text);
+        setTimeout(() => setCopiedMatric(null), 2000);
+      } else {
+        setCopiedPassword(text);
+        setTimeout(() => setCopiedPassword(null), 2000);
+      }
+      showNotification(`${type === "matric" ? "Matric number" : "Password"} copied to clipboard!`, "success", 2000);
     } catch (err) {
-      console.error("Failed to copy matric number:", err);
-      showNotification("Failed to copy matric number", "error");
+      console.error("Failed to copy:", err);
+      showNotification(`Failed to copy ${type}`, "error");
     }
   };
 
@@ -112,7 +119,13 @@ const App = () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: emailValue, matricNumber: matricValue })
     })
-      .then(res => res.json())
+      .then(async res => {
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || `HTTP error! status: ${res.status}`);
+        }
+        return data;
+      })
       .then(data => {
         console.log("📦 Response data:", data);
         if (data.user) {
@@ -128,16 +141,16 @@ const App = () => {
       })
       .catch(err => {
         console.error("🚨 Login exception:", err);
-        showNotification("Network error! Check if backend is running.", "error");
+        showNotification(err.message || "Network error! Check if backend is running.", "error");
       });
   };
 
-  // Signup handler
+  // Signup handler - UPDATED to include password
   const handleSignUp = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!signupFirstName || !signupLastName || !signupEmail || !dateStarted || !signupDepartment) {
-      showNotification("Please fill all required fields", "error");
+    if (!signupFirstName || !signupLastName || !signupEmail || !dateStarted || !signupDepartment || !signupPassword) {
+      showNotification("Please fill all required fields including password", "error");
       return;
     }
 
@@ -148,10 +161,11 @@ const App = () => {
       firstName: signupFirstName.trim(),
       lastName: signupLastName.trim(),
       email: signupEmail.trim(),
+      password: signupPassword, // ADDED: Send password to backend
       dateStarted,
       department: signupDepartment,
       matricNumber,
-      profileImage: profileImage || undefined
+      profileImage: profileImage || ""
     };
 
     console.log("📤 Sending signup payload:", payload);
@@ -161,10 +175,16 @@ const App = () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     })
-      .then(res => res.json())
+      .then(async res => {
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || data.errors?.join(", ") || `HTTP error! status: ${res.status}`);
+        }
+        return data;
+      })
       .then(data => {
         console.log("📥 Signup response:", data);
-        if (data.user || data.message === "User registered successfully") {
+        if (data.user) {
           showNotification(
             <div style={{ textAlign: 'left' }}>
               <p style={{ marginBottom: '8px' }}>Registration successful! Your matric number has been generated.</p>
@@ -183,7 +203,7 @@ const App = () => {
                   fontWeight: 'bold',
                   color: '#28a745',
                   marginRight: 'auto'
-                }}>{matricNumber}</span>
+                }}>{data.user.matricNumber}</span>
                 <button
                   style={{
                     background: 'none',
@@ -195,10 +215,10 @@ const App = () => {
                     borderRadius: '4px',
                     transition: 'all 0.2s ease'
                   }}
-                  onClick={() => copyToClipboard(matricNumber)}
+                  onClick={() => copyToClipboard(data.user.matricNumber, "matric")}
                   title="Copy to clipboard"
                 >
-                  {copiedMatric === matricNumber ? '✓' : '📋'}
+                  {copiedMatric === data.user.matricNumber ? '✓' : '📋'}
                 </button>
               </div>
               <p style={{ fontSize: '0.9em', color: '#dc3545', margin: '4px 0 0 0', fontWeight: 'bold' }}>
@@ -212,6 +232,7 @@ const App = () => {
           setSignupFirstName("");
           setSignupLastName("");
           setSignupEmail("");
+          setSignupPassword("");
           setSignupDepartment("");
           setProfileImage("");
           setDateStarted("");
@@ -223,11 +244,11 @@ const App = () => {
       })
       .catch(err => {
         console.error("Signup exception:", err);
-        showNotification("Network error! Please check your connection.", "error");
+        showNotification(err.message || "Network error! Please check your connection.", "error");
       });
   };
 
-  // Admin add user handler
+  // Admin add user handler - UPDATED to use new endpoint
   const handleAdminAddUser = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -246,55 +267,98 @@ const App = () => {
       dateStarted: addDateStarted,
       department: addDepartment,
       matricNumber,
-      profileImage: addProfileImage || undefined
+      profileImage: addProfileImage || ""
     };
 
-    fetch(`${API_BASE_URL}/auth/register`, {
+    // Use the new admin endpoint
+    fetch(`${API_BASE_URL}/auth/admin/add-user`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     })
-      .then(res => res.json())
+      .then(async res => {
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || data.errors?.join(", ") || `HTTP error! status: ${res.status}`);
+        }
+        return data;
+      })
       .then(data => {
-        if (data.user || data.message === "User registered successfully") {
+        if (data.user) {
+          const tempPassword = data.temporaryPassword || "Generated by server";
+          
           showNotification(
             <div style={{ textAlign: 'left' }}>
               <p style={{ marginBottom: '8px' }}>User added successfully!</p>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: '#f8f9fa',
-                padding: '8px 12px',
-                borderRadius: '6px',
-                margin: '8px 0',
-                border: '1px solid #e9ecef'
-              }}>
-                <span style={{ fontWeight: 'bold', marginRight: '8px', color: '#495057' }}>Matric Number:</span>
-                <span style={{
-                  fontFamily: 'Courier New, monospace',
-                  fontWeight: 'bold',
-                  color: '#28a745',
-                  marginRight: 'auto'
-                }}>{matricNumber}</span>
-                <button
-                  style={{
-                    background: 'none',
-                    border: '1px solid #ddd',
-                    cursor: 'pointer',
-                    color: '#666',
-                    marginLeft: '8px',
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onClick={() => copyToClipboard(matricNumber)}
-                  title="Copy to clipboard"
-                >
-                  {copiedMatric === matricNumber ? '✓' : '📋'}
-                </button>
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  background: '#f8f9fa',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  margin: '8px 0',
+                  border: '1px solid #e9ecef'
+                }}>
+                  <span style={{ fontWeight: 'bold', marginRight: '8px', color: '#495057' }}>Matric Number:</span>
+                  <span style={{
+                    fontFamily: 'Courier New, monospace',
+                    fontWeight: 'bold',
+                    color: '#28a745',
+                    marginRight: 'auto'
+                  }}>{data.user.matricNumber}</span>
+                  <button
+                    style={{
+                      background: 'none',
+                      border: '1px solid #ddd',
+                      cursor: 'pointer',
+                      color: '#666',
+                      marginLeft: '8px',
+                      padding: '4px 8px',
+                      borderRadius: '4px'
+                    }}
+                    onClick={() => copyToClipboard(data.user.matricNumber, "matric")}
+                    title="Copy matric number"
+                  >
+                    {copiedMatric === data.user.matricNumber ? '✓' : '📋'}
+                  </button>
+                </div>
+                
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  background: '#fff3e0',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  margin: '8px 0',
+                  border: '1px solid #ffcc80'
+                }}>
+                  <span style={{ fontWeight: 'bold', marginRight: '8px', color: '#e65100' }}>Temporary Password:</span>
+                  <span style={{
+                    fontFamily: 'Courier New, monospace',
+                    fontWeight: 'bold',
+                    color: '#f57c00',
+                    marginRight: 'auto'
+                  }}>{tempPassword}</span>
+                  <button
+                    style={{
+                      background: 'none',
+                      border: '1px solid #ffcc80',
+                      cursor: 'pointer',
+                      color: '#e65100',
+                      marginLeft: '8px',
+                      padding: '4px 8px',
+                      borderRadius: '4px'
+                    }}
+                    onClick={() => copyToClipboard(tempPassword, "password")}
+                    title="Copy password"
+                  >
+                    {copiedPassword === tempPassword ? '✓' : '📋'}
+                  </button>
+                </div>
               </div>
               <p style={{ fontSize: '0.9em', color: '#dc3545', margin: '4px 0 0 0', fontWeight: 'bold' }}>
-                ⚠️ Share this matric number with the user!
+                ⚠️ Share matric number AND temporary password with the user!
               </p>
             </div>,
             "success",
@@ -318,7 +382,7 @@ const App = () => {
       })
       .catch(err => {
         console.error("Add user exception:", err);
-        showNotification("Network error! Please check your connection.", "error");
+        showNotification(err.message || "Network error! Please check your connection.", "error");
       });
   };
 
@@ -339,7 +403,13 @@ const App = () => {
 
   const fetchAllUsers = () => {
     fetch(`${API_BASE_URL}/users`)
-      .then(res => res.json())
+      .then(async res => {
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || `HTTP error! status: ${res.status}`);
+        }
+        return data;
+      })
       .then(data => {
         if (data.users) {
           setAllUsers(data.users);
@@ -364,9 +434,15 @@ const App = () => {
     fetch(`${API_BASE_URL}/users/${userId}`, {
       method: "DELETE"
     })
-      .then(res => res.json())
+      .then(async res => {
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || `HTTP error! status: ${res.status}`);
+        }
+        return data;
+      })
       .then(data => {
-        if (data.message) {
+        if (data.success || data.message) {
           showNotification("User deleted successfully", "success");
           fetchAllUsers();
         } else {
@@ -524,7 +600,6 @@ const App = () => {
               </p>
               {user.matricNumber && (
                 <p style={{ margin: '10px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#333' }}>
-                  👤
                   <span style={{ fontWeight: 'bold' }}>Matric:</span>
                   <span style={{ fontFamily: 'Courier New, monospace', fontWeight: 'bold' }}>{user.matricNumber}</span>
                   <button
@@ -537,7 +612,7 @@ const App = () => {
                       borderRadius: '4px',
                       transition: 'all 0.2s ease'
                     }}
-                    onClick={() => copyToClipboard(user.matricNumber!)}
+                    onClick={() => copyToClipboard(user.matricNumber!, "matric")}
                     title="Copy matric number"
                   >
                     {copiedMatric === user.matricNumber ? '✓' : '📋'}
@@ -660,7 +735,7 @@ const App = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <input
                   type="text"
-                  placeholder="First Name"
+                  placeholder="First Name *"
                   value={addFirstName}
                   onChange={(e) => setAddFirstName(e.target.value)}
                   style={{
@@ -672,7 +747,7 @@ const App = () => {
                 />
                 <input
                   type="text"
-                  placeholder="Last Name"
+                  placeholder="Last Name *"
                   value={addLastName}
                   onChange={(e) => setAddLastName(e.target.value)}
                   style={{
@@ -684,7 +759,7 @@ const App = () => {
                 />
                 <input
                   type="email"
-                  placeholder="Email"
+                  placeholder="Email *"
                   value={addEmail}
                   onChange={(e) => setAddEmail(e.target.value)}
                   style={{
@@ -705,13 +780,13 @@ const App = () => {
                     cursor: 'pointer'
                   }}
                 >
-                  <option value="">Select Department</option>
+                  <option value="">Select Department *</option>
                   {DEPARTMENTS.map((dept) => (
                     <option key={dept} value={dept}>{dept}</option>
                   ))}
                 </select>
                 <div>
-                  <label style={{ fontSize: '14px', color: '#666', fontWeight: '500', marginBottom: '8px', display: 'block' }}>Date Started</label>
+                  <label style={{ fontSize: '14px', color: '#666', fontWeight: '500', marginBottom: '8px', display: 'block' }}>Date Started *</label>
                   <input
                     type="date"
                     value={addDateStarted}
@@ -1017,7 +1092,7 @@ const App = () => {
                                 padding: '2px',
                                 marginLeft: '4px'
                               }}
-                              onClick={() => copyToClipboard(u.matricNumber!)}
+                              onClick={() => copyToClipboard(u.matricNumber!, "matric")}
                               title="Copy matric number"
                             >
                               {copiedMatric === u.matricNumber ? '✓' : '📋'}
@@ -1233,7 +1308,7 @@ const App = () => {
               <span style={{ color: '#555', fontSize: '18px' }}>👤</span>
               <input
                 type="text"
-                placeholder="First Name"
+                placeholder="First Name *"
                 value={signupFirstName}
                 onChange={(e) => setSignupFirstName(e.target.value)}
                 style={{
@@ -1256,7 +1331,7 @@ const App = () => {
               <span style={{ color: '#555', fontSize: '18px' }}>👤</span>
               <input
                 type="text"
-                placeholder="Last Name"
+                placeholder="Last Name *"
                 value={signupLastName}
                 onChange={(e) => setSignupLastName(e.target.value)}
                 style={{
@@ -1279,9 +1354,35 @@ const App = () => {
               <span style={{ color: '#555', fontSize: '18px' }}>✉️</span>
               <input
                 type="email"
-                placeholder="Email"
+                placeholder="Email *"
                 value={signupEmail}
                 onChange={(e) => setSignupEmail(e.target.value)}
+                style={{
+                  border: 'none',
+                  outline: 'none',
+                  flex: 1,
+                  padding: '8px',
+                  fontSize: '15px',
+                  background: 'transparent'
+                }}
+              />
+            </div>
+
+            {/* ADDED: Password field */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              borderBottom: '2px solid #ccc',
+              padding: '10px 5px',
+              gap: '10px'
+            }}>
+              <span style={{ color: '#555', fontSize: '18px' }}>🔒</span>
+              <input
+                type="password"
+                placeholder="Password (min 6 characters) *"
+                value={signupPassword}
+                onChange={(e) => setSignupPassword(e.target.value)}
+                minLength={6}
                 style={{
                   border: 'none',
                   outline: 'none',
@@ -1342,20 +1443,22 @@ const App = () => {
               )}
             </div>
 
-            <p style={{ margin: '-10px 0 -10px 0', fontSize: '14px', color: '#666', fontWeight: '500' }}>Date Started</p>
-            <input
-              type="date"
-              value={dateStarted}
-              onChange={(e) => setDateStarted(e.target.value)}
-              max={new Date().toISOString().split('T')[0]}
-              style={{
-                border: '2px solid #ccc',
-                borderRadius: '8px',
-                padding: '10px',
-                fontSize: '15px',
-                width: '100%'
-              }}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '14px', color: '#666', fontWeight: '500' }}>Date Started *</label>
+              <input
+                type="date"
+                value={dateStarted}
+                onChange={(e) => setDateStarted(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+                style={{
+                  padding: '12px',
+                  border: '2px solid #ccc',
+                  borderRadius: '8px',
+                  fontSize: '15px',
+                  width: '100%'
+                }}
+              />
+            </div>
 
             <button
               onClick={handleSignUp}
