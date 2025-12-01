@@ -1,4 +1,5 @@
-import { useState, useEffect, ReactNode } from "react";
+import { useState, useEffect } from "react";
+import type { ReactNode } from "react";
 import { 
   FaEye, 
   FaEyeSlash, 
@@ -34,7 +35,7 @@ const ADMIN_SEED = {
 
 // TypeScript interfaces
 interface Notification {
-  message: string | ReactNode;  // Changed from JSX.Element to ReactNode
+  message: string | ReactNode;
   type: "success" | "error";
 }
 
@@ -120,8 +121,8 @@ const App = () => {
         setTimeout(() => setCopiedPassword(null), 2000);
       }
       showNotification(
-        <div className="flex items-center gap-2">
-          <FaCheck className="text-green-300" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FaCheck style={{ color: '#4caf50' }} />
           <span>{type === "matric" ? "Matric number" : "Password"} copied to clipboard!</span>
         </div>,
         "success",
@@ -151,8 +152,8 @@ const App = () => {
         matricNumber: ADMIN_SEED.matricNumber
       });
       showNotification(
-        <div className="flex items-center gap-2">
-          <FaCrown className="text-yellow-400" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FaCrown style={{ color: '#ffd700' }} />
           <span>Welcome, System Administrator!</span>
         </div>,
         "success"
@@ -184,8 +185,8 @@ const App = () => {
       if (data.user) {
         console.log("✅ Login successful!");
         showNotification(
-          <div className="flex items-center gap-2">
-            <FaCheck className="text-green-300" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FaCheck style={{ color: '#4caf50' }} />
             <span>Login successful! Welcome {data.user.firstName}</span>
           </div>,
           "success"
@@ -247,32 +248,67 @@ const App = () => {
 
       if (data.user) {
         showNotification(
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <FaCheck className="text-green-300" />
-              <span className="font-semibold">Registration Successful!</span>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <FaCheck style={{ color: '#4caf50' }} />
+              <span style={{ fontWeight: 'bold' }}>Registration Successful!</span>
             </div>
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-gray-700">Your Matric Number:</span>
+            <div style={{
+              background: '#f8f9fa',
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid #e9ecef',
+              margin: '8px 0'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontWeight: 'bold', color: '#495057' }}>Your Matric Number:</span>
                 <button
                   onClick={() => copyToClipboard(data.user.matricNumber, "matric")}
-                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  style={{
+                    background: 'none',
+                    border: '1px solid #ddd',
+                    cursor: 'pointer',
+                    color: '#666',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    transition: 'all 0.2s ease'
+                  }}
                   title="Copy matric number"
                 >
                   {copiedMatric === data.user.matricNumber ? (
-                    <FaCheck className="text-green-500" />
+                    <FaCheck style={{ color: '#4caf50' }} />
                   ) : (
-                    <FaCopy className="text-gray-500" />
+                    <FaCopy style={{ color: '#666' }} />
                   )}
                 </button>
               </div>
-              <code className="bg-gray-100 px-3 py-2 rounded font-mono font-bold text-green-600 text-lg block text-center">
+              <code style={{
+                background: '#f1f1f1',
+                padding: '8px 12px',
+                borderRadius: '4px',
+                fontFamily: 'Courier New, monospace',
+                fontWeight: 'bold',
+                color: '#28a745',
+                fontSize: '18px',
+                display: 'block',
+                textAlign: 'center'
+              }}>
                 {data.user.matricNumber}
               </code>
             </div>
-            <div className="flex items-center gap-2 text-sm text-red-600 font-semibold bg-red-50 p-3 rounded-lg">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '14px',
+              color: '#dc3545',
+              fontWeight: 'bold',
+              background: '#f8d7da',
+              padding: '12px',
+              borderRadius: '8px',
+              marginTop: '8px'
+            }}>
+              <svg style={{ width: '20px', height: '20px' }} fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
               <span>Save this number securely! You'll need it to login.</span>
@@ -336,56 +372,115 @@ const App = () => {
         const tempPassword = data.temporaryPassword || Math.random().toString(36).slice(-8);
         
         showNotification(
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <FaCheck className="text-green-300" />
-              <span className="font-semibold">User Added Successfully!</span>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <FaCheck style={{ color: '#4caf50' }} />
+              <span style={{ fontWeight: 'bold' }}>User Added Successfully!</span>
             </div>
             
             {/* Matric Number */}
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-gray-700">Matric Number:</span>
+            <div style={{
+              background: '#f8f9fa',
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid #e9ecef',
+              margin: '8px 0'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontWeight: 'bold', color: '#495057' }}>Matric Number:</span>
                 <button
                   onClick={() => copyToClipboard(data.user.matricNumber, "matric")}
-                  className="p-2 hover:bg-gray-100 rounded transition-colors"
+                  style={{
+                    background: 'none',
+                    border: '1px solid #ddd',
+                    cursor: 'pointer',
+                    color: '#666',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    transition: 'all 0.2s ease'
+                  }}
                   title="Copy matric number"
                 >
                   {copiedMatric === data.user.matricNumber ? (
-                    <FaCheck className="text-green-500" />
+                    <FaCheck style={{ color: '#4caf50' }} />
                   ) : (
-                    <FaCopy className="text-gray-500" />
+                    <FaCopy style={{ color: '#666' }} />
                   )}
                 </button>
               </div>
-              <code className="bg-gray-100 px-3 py-2 rounded font-mono font-bold text-green-600 text-lg block text-center">
+              <code style={{
+                background: '#f1f1f1',
+                padding: '8px 12px',
+                borderRadius: '4px',
+                fontFamily: 'Courier New, monospace',
+                fontWeight: 'bold',
+                color: '#28a745',
+                fontSize: '18px',
+                display: 'block',
+                textAlign: 'center'
+              }}>
                 {data.user.matricNumber}
               </code>
             </div>
             
             {/* Temporary Password */}
-            <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-amber-800">Temporary Password:</span>
+            <div style={{
+              background: '#fff3e0',
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid #ffcc80',
+              margin: '8px 0'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontWeight: 'bold', color: '#e65100' }}>Temporary Password:</span>
                 <button
                   onClick={() => copyToClipboard(tempPassword, "password")}
-                  className="p-2 hover:bg-amber-100 rounded transition-colors"
+                  style={{
+                    background: 'none',
+                    border: '1px solid #ffcc80',
+                    cursor: 'pointer',
+                    color: '#e65100',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    transition: 'all 0.2s ease'
+                  }}
                   title="Copy password"
                 >
                   {copiedPassword === tempPassword ? (
-                    <FaCheck className="text-amber-600" />
+                    <FaCheck style={{ color: '#f57c00' }} />
                   ) : (
-                    <FaCopy className="text-amber-500" />
+                    <FaCopy style={{ color: '#f57c00' }} />
                   )}
                 </button>
               </div>
-              <code className="bg-amber-100 px-3 py-2 rounded font-mono font-bold text-amber-700 text-lg block text-center">
+              <code style={{
+                background: '#ffe0b2',
+                padding: '8px 12px',
+                borderRadius: '4px',
+                fontFamily: 'Courier New, monospace',
+                fontWeight: 'bold',
+                color: '#f57c00',
+                fontSize: '18px',
+                display: 'block',
+                textAlign: 'center'
+              }}>
                 {tempPassword}
               </code>
             </div>
             
-            <div className="flex items-center gap-2 text-sm text-red-600 font-semibold bg-red-50 p-3 rounded-lg">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '14px',
+              color: '#dc3545',
+              fontWeight: 'bold',
+              background: '#f8d7da',
+              padding: '12px',
+              borderRadius: '8px',
+              marginTop: '8px'
+            }}>
+              <svg style={{ width: '20px', height: '20px' }} fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
               <span>Share both matric number and password with the user!</span>
@@ -609,35 +704,76 @@ const App = () => {
 
         {/* Add User Modal */}
         {showAddUserModal && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <h3>Add New User</h3>
-              <div className="space-y-4">
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}>
+            <div style={{
+              background: 'white',
+              borderRadius: '20px',
+              padding: '30px',
+              maxWidth: '500px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}>
+              <h3 style={{ marginBottom: '20px', color: '#18ab18', fontSize: '24px' }}>Add New User</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <input
                   type="text"
                   placeholder="First Name *"
                   value={addFirstName}
                   onChange={(e) => setAddFirstName(e.target.value)}
-                  className="form-input"
+                  style={{
+                    padding: '12px',
+                    border: '2px solid #ccc',
+                    borderRadius: '8px',
+                    fontSize: '15px'
+                  }}
                 />
                 <input
                   type="text"
                   placeholder="Last Name *"
                   value={addLastName}
                   onChange={(e) => setAddLastName(e.target.value)}
-                  className="form-input"
+                  style={{
+                    padding: '12px',
+                    border: '2px solid #ccc',
+                    borderRadius: '8px',
+                    fontSize: '15px'
+                  }}
                 />
                 <input
                   type="email"
                   placeholder="Email *"
                   value={addEmail}
                   onChange={(e) => setAddEmail(e.target.value)}
-                  className="form-input"
+                  style={{
+                    padding: '12px',
+                    border: '2px solid #ccc',
+                    borderRadius: '8px',
+                    fontSize: '15px'
+                  }}
                 />
                 <select
                   value={addDepartment}
                   onChange={(e) => setAddDepartment(e.target.value)}
-                  className="form-select"
+                  style={{
+                    padding: '12px',
+                    border: '2px solid #ccc',
+                    borderRadius: '8px',
+                    fontSize: '15px',
+                    cursor: 'pointer'
+                  }}
                 >
                   <option value="">Select Department *</option>
                   {DEPARTMENTS.map((dept) => (
@@ -645,36 +781,66 @@ const App = () => {
                   ))}
                 </select>
                 <div>
-                  <label>Date Started *</label>
+                  <label style={{ fontSize: '14px', color: '#666', fontWeight: '500', marginBottom: '8px', display: 'block' }}>Date Started *</label>
                   <input
                     type="date"
                     value={addDateStarted}
                     onChange={(e) => setAddDateStarted(e.target.value)}
                     max={new Date().toISOString().split('T')[0]}
-                    className="form-input"
+                    style={{
+                      padding: '12px',
+                      border: '2px solid #ccc',
+                      borderRadius: '8px',
+                      fontSize: '15px',
+                      width: '100%'
+                    }}
                   />
                 </div>
                 <div>
-                  <label>Profile Image (Optional)</label>
+                  <label style={{ fontSize: '14px', color: '#666', fontWeight: '500', marginBottom: '8px', display: 'block' }}>Profile Image (Optional)</label>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => handleImageUpload(e, true)}
-                    className="file-input"
+                    style={{
+                      padding: '10px',
+                      border: '2px dashed #ccc',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      width: '100%'
+                    }}
                   />
                   {addProfileImage && (
-                    <div className="image-preview">
-                      <img src={addProfileImage} alt="Preview" />
+                    <div style={{
+                      width: '100px',
+                      height: '100px',
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      border: '3px solid #18ab18',
+                      margin: '10px auto 0'
+                    }}>
+                      <img src={addProfileImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                   )}
                 </div>
 
-                <div className="flex gap-3 mt-6">
+                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                   <button
                     onClick={handleAdminAddUser}
-                    className="btn-primary flex-1"
+                    style={{
+                      flex: 1,
+                      padding: '14px',
+                      border: 'none',
+                      background: '#18ab18',
+                      color: 'white',
+                      fontWeight: 'bold',
+                      fontSize: '16px',
+                      borderRadius: '10px',
+                      cursor: 'pointer'
+                    }}
                   >
-                    <FaPlus className="inline mr-2" />
+                    <FaPlus style={{ display: 'inline', marginRight: '8px' }} />
                     Add User
                   </button>
                   <button
@@ -687,7 +853,17 @@ const App = () => {
                       setAddDateStarted("");
                       setAddProfileImage("");
                     }}
-                    className="btn-secondary flex-1"
+                    style={{
+                      flex: 1,
+                      padding: '14px',
+                      border: '2px solid #ccc',
+                      background: 'white',
+                      color: '#666',
+                      fontWeight: 'bold',
+                      fontSize: '16px',
+                      borderRadius: '10px',
+                      cursor: 'pointer'
+                    }}
                   >
                     Cancel
                   </button>
@@ -701,7 +877,7 @@ const App = () => {
           <div className="dashboard-header">
             <div>
               <h2>Admin Dashboard</h2>
-              <p className="text-gray-600 mt-1">Welcome, {user.firstName} {user.lastName}</p>
+              <p style={{ color: '#666', marginTop: '8px' }}>Welcome, {user.firstName} {user.lastName}</p>
             </div>
             <div className="flex gap-3">
               <button
@@ -842,7 +1018,7 @@ const App = () => {
       <div className="wrapper">
         <div className="Hero">
           <div className="image">
-            <img src={polyimage} alt="School Logo" />
+            <img src={polyimage} alt="School Logo" width={70} />
           </div>
 
           {notification && (
@@ -855,20 +1031,36 @@ const App = () => {
           )}
 
           {/* Role Selection */}
-          <div className="mb-8">
-            <div className="flex gap-4 mb-6">
+          <div style={{ marginBottom: '32px' }}>
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
               <button
                 onClick={() => {
                   setLoginRole("student");
                   setShowAdminLogin(false);
                 }}
-                className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all ${
-                  loginRole === "student"
-                    ? "bg-green-600 text-white shadow-lg"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                style={{
+                  flex: 1,
+                  padding: '12px 24px',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  fontSize: '16px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  ...(loginRole === "student"
+                    ? {
+                        background: '#18ab18',
+                        color: 'white',
+                        boxShadow: '0 4px 12px rgba(24, 171, 24, 0.3)'
+                      }
+                    : {
+                        background: '#f5f5f5',
+                        color: '#444',
+                        border: '1px solid #ddd'
+                      })
+                }}
               >
-                <FaGraduationCap className="inline mr-2" />
+                <FaGraduationCap style={{ display: 'inline', marginRight: '8px' }} />
                 Student Login
               </button>
               <button
@@ -876,57 +1068,120 @@ const App = () => {
                   setLoginRole("admin");
                   setShowAdminLogin(true);
                 }}
-                className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-all ${
-                  loginRole === "admin"
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                style={{
+                  flex: 1,
+                  padding: '12px 24px',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  fontSize: '16px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  ...(loginRole === "admin"
+                    ? {
+                        background: '#2196f3',
+                        color: 'white',
+                        boxShadow: '0 4px 12px rgba(33, 150, 243, 0.3)'
+                      }
+                    : {
+                        background: '#f5f5f5',
+                        color: '#444',
+                        border: '1px solid #ddd'
+                      })
+                }}
               >
-                <FaCrown className="inline mr-2" />
+                <FaCrown style={{ display: 'inline', marginRight: '8px' }} />
                 Admin Login
               </button>
             </div>
 
             {showAdminLogin && (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6 animate-fadeIn">
-                <div className="flex items-center gap-3 mb-4">
-                  <FaKey className="text-blue-500 text-xl" />
-                  <h4 className="text-lg font-semibold text-blue-800">Quick Admin Access</h4>
+              <div style={{
+                background: '#e3f2fd',
+                border: '1px solid #bbdefb',
+                borderRadius: '16px',
+                padding: '24px',
+                marginBottom: '24px',
+                animation: 'fadeIn 0.5s ease'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                  <FaKey style={{ color: '#2196f3', fontSize: '20px' }} />
+                  <h4 style={{ fontSize: '18px', fontWeight: '600', color: '#1565c0' }}>Quick Admin Access</h4>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
-                      <p className="font-medium text-gray-700">Admin Email:</p>
-                      <code className="bg-blue-100 px-3 py-1 rounded font-mono text-blue-700">
+                      <p style={{ fontWeight: '500', color: '#333', marginBottom: '4px' }}>Admin Email:</p>
+                      <code style={{
+                        background: '#bbdefb',
+                        padding: '4px 12px',
+                        borderRadius: '4px',
+                        fontFamily: 'Courier New, monospace',
+                        color: '#0d47a1'
+                      }}>
                         {ADMIN_SEED.email}
                       </code>
                     </div>
                     <button
                       onClick={() => copyToClipboard(ADMIN_SEED.email, "matric")}
-                      className="p-2 hover:bg-blue-100 rounded"
+                      style={{
+                        background: 'none',
+                        border: '1px solid #bbdefb',
+                        cursor: 'pointer',
+                        padding: '8px',
+                        borderRadius: '4px',
+                        transition: 'all 0.2s ease'
+                      }}
                     >
-                      <FaCopy className="text-blue-500" />
+                      <FaCopy style={{ color: '#2196f3' }} />
                     </button>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
-                      <p className="font-medium text-gray-700">Admin Matric:</p>
-                      <code className="bg-blue-100 px-3 py-1 rounded font-mono text-blue-700">
+                      <p style={{ fontWeight: '500', color: '#333', marginBottom: '4px' }}>Admin Matric:</p>
+                      <code style={{
+                        background: '#bbdefb',
+                        padding: '4px 12px',
+                        borderRadius: '4px',
+                        fontFamily: 'Courier New, monospace',
+                        color: '#0d47a1'
+                      }}>
                         {ADMIN_SEED.matricNumber}
                       </code>
                     </div>
                     <button
                       onClick={() => copyToClipboard(ADMIN_SEED.matricNumber, "matric")}
-                      className="p-2 hover:bg-blue-100 rounded"
+                      style={{
+                        background: 'none',
+                        border: '1px solid #bbdefb',
+                        cursor: 'pointer',
+                        padding: '8px',
+                        borderRadius: '4px',
+                        transition: 'all 0.2s ease'
+                      }}
                     >
-                      <FaCopy className="text-blue-500" />
+                      <FaCopy style={{ color: '#2196f3' }} />
                     </button>
                   </div>
                   <button
                     onClick={handleQuickAdminLogin}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors mt-4"
+                    style={{
+                      width: '100%',
+                      background: '#2196f3',
+                      color: 'white',
+                      fontWeight: '600',
+                      fontSize: '16px',
+                      padding: '12px',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'background 0.3s ease',
+                      marginTop: '16px'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = '#1976d2'}
+                    onMouseOut={(e) => e.currentTarget.style.background = '#2196f3'}
                   >
-                    <FaCrown className="inline mr-2" />
+                    <FaCrown style={{ display: 'inline', marginRight: '8px' }} />
                     Login as Administrator
                   </button>
                 </div>
@@ -1036,7 +1291,13 @@ const App = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#555',
+                    padding: '4px'
+                  }}
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
