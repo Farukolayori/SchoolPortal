@@ -290,7 +290,7 @@ const App = () => {
                   onClick={() => copyToClipboard(matricNumber)}
                   title="Copy to clipboard"
                 >
-                  <FontAwesomeIcon icon={copiedMatric === matricNumber ? faCheck : faCopy} />
+                  {copiedMatric === matricNumber ? '✓' : '📋'}
                 </button>
               </div>
               <p style={{ fontSize: '0.9em', color: '#dc3545', margin: '4px 0 0 0', fontWeight: 'bold' }}>
