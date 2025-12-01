@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faEnvelope, faEye, faCalendar } from "@fortawesome/free-solid-svg-icons";
-import './App.css';
+import { faUser, faEnvelope, faEye, faCalendar, faCopy, faCheck } from "@fortawesome/free-solid-svg-icons";
 
 // API Base URL
 const API_BASE_URL = "https://portal-backend-xrww.onrender.com/api";
@@ -12,7 +11,7 @@ const defaultAvatar = "https://ui-avatars.com/api/?name=Student&size=200&backgro
 
 // TypeScript interfaces
 interface Notification {
-  message: string;
+  message: string | JSX.Element;
   type: "success" | "error";
 }
 
@@ -52,6 +51,7 @@ const App = () => {
   const [profileImage, setProfileImage] = useState<string>("");
   const [dateStarted, setDateStarted] = useState<string>("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
+  const [copiedMatric, setCopiedMatric] = useState<string | null>(null);
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState<string>("");
@@ -69,9 +69,22 @@ const App = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const showNotification = (message: string, type: "success" | "error", duration: number = 3000) => {
+  const showNotification = (message: string | JSX.Element, type: "success" | "error", duration: number = 3000) => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), duration);
+  };
+
+  // Copy matric number to clipboard
+  const copyToClipboard = async (matricNumber: string) => {
+    try {
+      await navigator.clipboard.writeText(matricNumber);
+      setCopiedMatric(matricNumber);
+      showNotification("Matric number copied to clipboard!", "success", 2000);
+      setTimeout(() => setCopiedMatric(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy matric number:", err);
+      showNotification("Failed to copy matric number", "error");
+    }
   };
 
   // Login handler
@@ -161,7 +174,51 @@ const App = () => {
       console.log("📥 Signup response:", data);
 
       if (res.ok) {
-        showNotification(`Registration successful! Your matric number is ${matricNumber}. Please save it for login.`, "success", 6000);
+        // Show matric number in a secure way with copy functionality
+        showNotification(
+          <div style={{ textAlign: 'left' }}>
+            <p style={{ marginBottom: '8px' }}>Registration successful! Your matric number has been generated.</p>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              background: '#f8f9fa', 
+              padding: '8px 12px', 
+              borderRadius: '6px', 
+              margin: '8px 0',
+              border: '1px solid #e9ecef'
+            }}>
+              <span style={{ fontWeight: 'bold', marginRight: '8px', color: '#495057' }}>Matric Number:</span>
+              <span style={{ 
+                fontFamily: 'Courier New, monospace', 
+                fontWeight: 'bold', 
+                color: '#28a745',
+                marginRight: 'auto'
+              }}>{matricNumber}</span>
+              <button 
+                style={{
+                  background: 'none',
+                  border: '1px solid #ddd',
+                  cursor: 'pointer',
+                  color: '#666',
+                  marginLeft: '8px',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  transition: 'all 0.2s ease'
+                }}
+                onClick={() => copyToClipboard(matricNumber)}
+                title="Copy to clipboard"
+              >
+                <FontAwesomeIcon icon={copiedMatric === matricNumber ? faCheck : faCopy} />
+              </button>
+            </div>
+            <p style={{ fontSize: '0.9em', color: '#dc3545', margin: '4px 0 0 0', fontWeight: 'bold' }}>
+              ⚠️ Save this number securely! You'll need it to login.
+            </p>
+          </div>,
+          "success",
+          10000
+        );
+
         setSignupFirstName("");
         setSignupLastName("");
         setSignupEmail("");
@@ -205,7 +262,13 @@ const App = () => {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) {
+    // Prevent admin from deleting themselves
+    if (userId === user?._id) {
+      showNotification("You cannot delete your own account!", "error");
+      return;
+    }
+
+    if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
       return;
     }
 
@@ -279,8 +342,17 @@ const App = () => {
                 <FontAwesomeIcon icon={faEnvelope} /> {user.email}
               </p>
               {user.matricNumber && (
-                <p>
-                  <FontAwesomeIcon icon={faUser} /> Matric: {user.matricNumber}
+                <p className="matric-row">
+                  <FontAwesomeIcon icon={faUser} /> 
+                  <span className="matric-label">Matric:</span>
+                  <span className="matric-number">{user.matricNumber}</span>
+                  <button 
+                    className="copy-btn"
+                    onClick={() => copyToClipboard(user.matricNumber!)}
+                    title="Copy matric number"
+                  >
+                    <FontAwesomeIcon icon={copiedMatric === user.matricNumber ? faCheck : faCopy} />
+                  </button>
                 </p>
               )}
               {user.department && (
@@ -336,7 +408,7 @@ const App = () => {
               <p>Total Users</p>
             </div>
             <div className="stat-card">
-              <h3>{allUsers.filter(u => u.role === "Students" || u.role === "user").length}</h3>
+              <h3>{allUsers.filter(u => u.role === "user" || u.role === "Students").length}</h3>
               <p>Students</p>
             </div>
             <div className="stat-card">
@@ -396,7 +468,20 @@ const App = () => {
                       </td>
                       <td>{u.firstName} {u.lastName}</td>
                       <td>{u.email}</td>
-                      <td>{u.matricNumber || "N/A"}</td>
+                      <td>
+                        <div className="matric-cell">
+                          {u.matricNumber || "N/A"}
+                          {u.matricNumber && (
+                            <button 
+                              className="copy-btn small"
+                              onClick={() => copyToClipboard(u.matricNumber!)}
+                              title="Copy matric number"
+                            >
+                              <FontAwesomeIcon icon={copiedMatric === u.matricNumber ? faCheck : faCopy} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
                       <td>{u.department || "N/A"}</td>
                       <td>
                         <span className={`role-badge ${u.role}`}>{u.role}</span>
@@ -406,6 +491,8 @@ const App = () => {
                         <button 
                           className="delete-btn"
                           onClick={() => handleDeleteUser(u._id!)}
+                          disabled={u._id === user?._id}
+                          title={u._id === user?._id ? "Cannot delete your own account" : "Delete user"}
                         >
                           Delete
                         </button>

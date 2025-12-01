@@ -1144,3 +1144,104 @@ tbody td {
   transform: translateY(-2px);
   box-shadow: 0 5px 12px rgba(244, 67, 54, 0.4);
 }
+/* Copy button styles */
+.copy-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #007bff;
+  margin-left: 8px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+  background-color: #f8f9fa;
+  color: #0056b3;
+}
+
+.copy-btn.small {
+  padding: 2px;
+  margin-left: 4px;
+}
+
+.copy-matric-btn {
+  background: none;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  color: #666;
+  margin-left: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.copy-matric-btn:hover {
+  background-color: #f8f9fa;
+  border-color: #007bff;
+  color: #007bff;
+}
+
+/* Matric number display styles */
+.matric-success-message {
+  text-align: left;
+}
+
+.matric-number-display {
+  display: flex;
+  align-items: center;
+  background: #f8f9fa;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 8px 0;
+  border: 1px solid #e9ecef;
+}
+
+.matric-label {
+  font-weight: bold;
+  margin-right: 8px;
+  color: #495057;
+}
+
+.matric-value {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: #28a745;
+  margin-right: auto;
+}
+
+.matric-warning {
+  font-size: 0.9em;
+  color: #dc3545;
+  margin: 4px 0 0 0;
+  font-weight: bold;
+}
+
+/* Matric row in ID card */
+.matric-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.matric-number {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+}
+
+/* Matric cell in admin table */
+.matric-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Success notification for copy */
+.notification.success .copy-btn {
+  color: #fff;
+}
+
+.notification.success .copy-btn:hover {
+  color: #e6f7ff;
+}
