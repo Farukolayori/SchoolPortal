@@ -446,6 +446,136 @@ const GlobalStyles = () => (
       pointer-events: none;
     }
 
+    /* Forgot Matric Link */
+    .forgot-matric-link {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .forgot-matric-link a {
+      color: #18ab18;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    .forgot-matric-link a:hover {
+      color: #12901a;
+      text-decoration: underline;
+    }
+
+    /* Forgot Matric Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 35px 30px;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 450px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      animation: popUp 0.4s ease;
+      position: relative;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .modal-header h3 {
+      color: #18ab18;
+      font-size: 24px;
+      margin: 0;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: #666;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      box-shadow: none;
+    }
+
+    .modal-close:hover {
+      background: #f5f5f5;
+      color: #333;
+      transform: none;
+    }
+
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .modal-info {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #666;
+      border-left: 4px solid #18ab18;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .modal-buttons button {
+      flex: 1;
+    }
+
+    .modal-buttons .cancel-btn {
+      background: #6c757d;
+      box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+
+    .modal-buttons .cancel-btn:hover {
+      background: #5a6268;
+    }
+
+    @media (max-width: 768px) {
+      .modal-content {
+        padding: 25px 20px;
+        max-width: 95%;
+      }
+
+      .modal-header h3 {
+        font-size: 20px;
+      }
+    }
+
     /* ID CARD */
     .id-card-real {
       width: 100%;
@@ -1594,6 +1724,12 @@ const App = () => {
                   <div className="button">
                     <button onClick={handleLogin}>Log In</button>
                   </div>
+
+                  <div className="forgot-matric-link">
+                    <a onClick={() => setShowForgotMatric(true)}>
+                      Forgot Matric Number?
+                    </a>
+                  </div>
                 </div>
 
                 <div className={`sign-up ${activeForm === "signup" ? "fade-in" : "fade-out"}`}>
@@ -1685,6 +1821,59 @@ const App = () => {
             </div>
           </div>
         </div>
+
+        {/* Forgot Matric Number Modal */}
+        {showForgotMatric && (
+          <div className="modal-overlay" onClick={() => setShowForgotMatric(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Recover Matric Number</h3>
+                <button className="modal-close" onClick={() => setShowForgotMatric(false)}>
+                  &times;
+                </button>
+              </div>
+              <div className="modal-body">
+                <div className="modal-info">
+                  <strong>ℹ️ Info:</strong> Enter your email and password to retrieve your matric number.
+                </div>
+                
+                <div className="input">
+                  <FontAwesomeIcon icon={faEnvelope} />
+                  <input 
+                    type="email" 
+                    placeholder="Enter your email" 
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    autoComplete="email"
+                  />
+                </div>
+
+                <div className="input">
+                  <input 
+                    type={showPasswordForgot ? "text" : "password"} 
+                    placeholder="Enter your password" 
+                    value={forgotPassword}
+                    onChange={(e) => setForgotPassword(e.target.value)}
+                  />
+                  <FontAwesomeIcon
+                    icon={faEye}
+                    onClick={() => setShowPasswordForgot(!showPasswordForgot)}
+                    style={{ cursor: "pointer" }}
+                  />
+                </div>
+
+                <div className="modal-buttons">
+                  <button className="cancel-btn" onClick={() => setShowForgotMatric(false)}>
+                    Cancel
+                  </button>
+                  <button onClick={handleForgotMatric}>
+                    Retrieve Matric
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
