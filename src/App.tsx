@@ -1,41 +1,17 @@
 import { useState, useEffect } from "react";
-import type { ReactNode } from "react";
-import { 
-  FaEye, 
-  FaEyeSlash, 
-  FaUser, 
-  FaEnvelope, 
-  FaIdCard, 
-  FaGraduationCap, 
-  FaCalendarAlt,
-  FaLock,
-  FaCopy,
-  FaCheck,
-  FaPlus,
-  FaSignOutAlt,
-  FaTrash,
-  FaFilter,
-  FaKey,
-  FaCrown
-} from "react-icons/fa";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUser, faEnvelope, faEye, faCalendar, faCopy, faCheck } from "@fortawesome/free-solid-svg-icons";
 
 // API Base URL
-const API_BASE_URL = "https://portal-backend-xrww.onrender.com/api";
+const API_BASE_URL = "https://schoolportal-backend-1.onrender.com/api";
 
 // Default images as placeholders
 const polyimage = "https://images.unsplash.com/photo-1562774053-701939374585?w=400&h=400&fit=crop";
 const defaultAvatar = "https://ui-avatars.com/api/?name=Student&size=200&background=18ab18&color=fff";
 
-// Admin seed credentials
-const ADMIN_SEED = {
-  email: "admin@polyibadan.edu.ng",
-  matricNumber: "ADMIN2024",
-  role: "admin" as const
-};
-
 // TypeScript interfaces
 interface Notification {
-  message: string | ReactNode;
+  message: string | React.ReactElement;
   type: "success" | "error";
 }
 
@@ -67,6 +43,7 @@ const DEPARTMENTS = [
 const App = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [activeForm, setActiveForm] = useState<"login" | "signup">("login");
+  const [showPasswordSignUp, setShowPasswordSignUp] = useState<boolean>(false);
   const [notification, setNotification] = useState<Notification | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -74,11 +51,6 @@ const App = () => {
   const [dateStarted, setDateStarted] = useState<string>("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [copiedMatric, setCopiedMatric] = useState<string | null>(null);
-  const [copiedPassword, setCopiedPassword] = useState<string | null>(null);
-  const [showAddUserModal, setShowAddUserModal] = useState<boolean>(false);
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [showAdminLogin, setShowAdminLogin] = useState<boolean>(false);
-  const [loginRole, setLoginRole] = useState<"student" | "admin">("student");
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState<string>("");
@@ -88,81 +60,40 @@ const App = () => {
   const [signupFirstName, setSignupFirstName] = useState<string>("");
   const [signupLastName, setSignupLastName] = useState<string>("");
   const [signupEmail, setSignupEmail] = useState<string>("");
-  const [signupDepartment, setSignupDepartment] = useState<string>("");
   const [signupPassword, setSignupPassword] = useState<string>("");
-
-  // Add user form state (admin)
-  const [addFirstName, setAddFirstName] = useState<string>("");
-  const [addLastName, setAddLastName] = useState<string>("");
-  const [addEmail, setAddEmail] = useState<string>("");
-  const [addDepartment, setAddDepartment] = useState<string>("");
-  const [addDateStarted, setAddDateStarted] = useState<string>("");
-  const [addProfileImage, setAddProfileImage] = useState<string>("");
+  const [signupDepartment, setSignupDepartment] = useState<string>("");
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1200);
     return () => clearTimeout(timer);
   }, []);
 
-  const showNotification = (message: string | ReactNode, type: "success" | "error", duration: number = 4000) => {
+  const showNotification = (message: string | React.ReactElement, type: "success" | "error", duration: number = 3000) => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), duration);
   };
 
-  // Copy to clipboard
-  const copyToClipboard = async (text: string, type: "matric" | "password" = "matric") => {
+  // Copy matric number to clipboard
+  const copyToClipboard = async (matricNumber: string) => {
     try {
-      await navigator.clipboard.writeText(text);
-      if (type === "matric") {
-        setCopiedMatric(text);
-        setTimeout(() => setCopiedMatric(null), 2000);
-      } else {
-        setCopiedPassword(text);
-        setTimeout(() => setCopiedPassword(null), 2000);
-      }
-      showNotification(
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <FaCheck style={{ color: '#4caf50' }} />
-          <span>{type === "matric" ? "Matric number" : "Password"} copied to clipboard!</span>
-        </div>,
-        "success",
-        2000
-      );
+      await navigator.clipboard.writeText(matricNumber);
+      setCopiedMatric(matricNumber);
+      showNotification("Matric number copied to clipboard!", "success", 2000);
+      setTimeout(() => setCopiedMatric(null), 2000);
     } catch (err) {
-      showNotification("Failed to copy", "error");
+      console.error("Failed to copy matric number:", err);
+      showNotification("Failed to copy matric number", "error");
     }
   };
 
   // Login handler
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleLogin = async () => {
     const emailValue = loginEmail.trim();
     const matricValue = loginMatricNumber.trim();
 
-    // Check for admin seed login
-    if (emailValue === ADMIN_SEED.email && matricValue === ADMIN_SEED.matricNumber) {
-      console.log("🔐 Admin seed login detected");
-      setUser({
-        firstName: "System",
-        lastName: "Administrator",
-        email: ADMIN_SEED.email,
-        role: "admin",
-        dateStarted: new Date().toISOString(),
-        matricNumber: ADMIN_SEED.matricNumber
-      });
-      showNotification(
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <FaCrown style={{ color: '#ffd700' }} />
-          <span>Welcome, System Administrator!</span>
-        </div>,
-        "success"
-      );
-      setLoginEmail("");
-      setLoginMatricNumber("");
-      setShowAdminLogin(false);
-      return;
-    }
+    console.log("🔐 Attempting login...");
+    console.log("📧 Email:", emailValue);
+    console.log("🎓 Matric Number:", matricValue);
 
     if (!emailValue || !matricValue) {
       showNotification("Please fill in all fields", "error");
@@ -170,155 +101,97 @@ const App = () => {
     }
 
     try {
+      console.log("📡 Sending request to backend...");
+      
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailValue, matricNumber: matricValue })
+        headers: { 
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ 
+          email: emailValue, 
+          matricNumber: matricValue 
+        })
       });
 
+      console.log("📥 Response status:", res.status);
+      
       const data = await res.json();
+      console.log("📦 Response data:", data);
 
-      if (!res.ok) {
-        throw new Error(data.message || `Login failed (${res.status})`);
-      }
-
-      if (data.user) {
+      if (res.ok && data.user) {
         console.log("✅ Login successful!");
-        showNotification(
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FaCheck style={{ color: '#4caf50' }} />
-            <span>Login successful! Welcome {data.user.firstName}</span>
-          </div>,
-          "success"
-        );
+        showNotification(`Login successful! Welcome ${data.user.firstName}`, "success");
         setUser(data.user);
         setLoginEmail("");
         setLoginMatricNumber("");
-        setShowAdminLogin(false);
       } else {
+        console.error("❌ Login failed:", data.message);
         showNotification(data.message || "Invalid credentials", "error");
       }
-    } catch (err: any) {
-      console.error("🚨 Login error:", err);
-      showNotification(err.message || "Network error. Please try again.", "error");
+    } catch (err) {
+      console.error("🚨 Login exception:", err);
+      showNotification("Network error! Check if backend is running.", "error");
     }
   };
 
   // Signup handler
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!signupFirstName || !signupLastName || !signupEmail || !dateStarted || !signupDepartment || !signupPassword) {
+  const handleSignUp = async () => {
+    if (!signupFirstName || !signupLastName || !signupEmail || !signupPassword || !dateStarted || !signupDepartment) {
       showNotification("Please fill all required fields", "error");
       return;
     }
 
-    if (signupPassword.length < 6) {
-      showNotification("Password must be at least 6 characters", "error");
-      return;
-    }
-
+    // Generate random 10-digit matric number
     const matricNumber = Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
-    const payload = {
-      firstName: signupFirstName.trim(),
-      lastName: signupLastName.trim(),
-      email: signupEmail.trim(),
-      password: signupPassword,
-      dateStarted,
-      department: signupDepartment,
-      matricNumber,
-      profileImage: profileImage || ""
-    };
-
-    console.log("📤 Signup payload:", payload);
-
     try {
+      const payload = { 
+        firstName: signupFirstName.trim(), 
+        lastName: signupLastName.trim(), 
+        email: signupEmail.trim(), 
+        password: signupPassword, 
+        dateStarted,
+        department: signupDepartment,
+        matricNumber,
+        profileImage: profileImage || undefined
+      };
+      
+      console.log("📤 Sending signup payload:", payload);
+
       const res = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
+      console.log("📥 Signup response:", data);
 
-      if (!res.ok) {
-        throw new Error(data.message || data.errors?.join(", ") || `Registration failed (${res.status})`);
-      }
-
-      if (data.user) {
+      if (res.ok) {
+        // Show matric number in a secure way with copy functionality
         showNotification(
-          <div style={{ textAlign: 'left' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <FaCheck style={{ color: '#4caf50' }} />
-              <span style={{ fontWeight: 'bold' }}>Registration Successful!</span>
+          <div className="matric-success-message">
+            <p style={{ marginBottom: '8px' }}>Registration successful! Your matric number has been generated.</p>
+            <div className="matric-number-display">
+              <span className="matric-label">Matric Number:</span>
+              <span className="matric-value">{matricNumber}</span>
+              <button 
+                className="copy-matric-btn"
+                onClick={() => copyToClipboard(matricNumber)}
+                title="Copy to clipboard"
+              >
+                <FontAwesomeIcon icon={copiedMatric === matricNumber ? faCheck : faCopy} />
+              </button>
             </div>
-            <div style={{
-              background: '#f8f9fa',
-              padding: '16px',
-              borderRadius: '8px',
-              border: '1px solid #e9ecef',
-              margin: '8px 0'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontWeight: 'bold', color: '#495057' }}>Your Matric Number:</span>
-                <button
-                  onClick={() => copyToClipboard(data.user.matricNumber, "matric")}
-                  style={{
-                    background: 'none',
-                    border: '1px solid #ddd',
-                    cursor: 'pointer',
-                    color: '#666',
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    transition: 'all 0.2s ease'
-                  }}
-                  title="Copy matric number"
-                >
-                  {copiedMatric === data.user.matricNumber ? (
-                    <FaCheck style={{ color: '#4caf50' }} />
-                  ) : (
-                    <FaCopy style={{ color: '#666' }} />
-                  )}
-                </button>
-              </div>
-              <code style={{
-                background: '#f1f1f1',
-                padding: '8px 12px',
-                borderRadius: '4px',
-                fontFamily: 'Courier New, monospace',
-                fontWeight: 'bold',
-                color: '#28a745',
-                fontSize: '18px',
-                display: 'block',
-                textAlign: 'center'
-              }}>
-                {data.user.matricNumber}
-              </code>
-            </div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '14px',
-              color: '#dc3545',
-              fontWeight: 'bold',
-              background: '#f8d7da',
-              padding: '12px',
-              borderRadius: '8px',
-              marginTop: '8px'
-            }}>
-              <svg style={{ width: '20px', height: '20px' }} fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              <span>Save this number securely! You'll need it to login.</span>
-            </div>
+            <p className="matric-warning">
+              ⚠️ Save this number securely! You'll need it to login.
+            </p>
           </div>,
           "success",
           10000
         );
 
-        // Reset form
         setSignupFirstName("");
         setSignupLastName("");
         setSignupEmail("");
@@ -327,197 +200,22 @@ const App = () => {
         setProfileImage("");
         setDateStarted("");
         setActiveForm("login");
+      } else {
+        showNotification(data.message || "Registration failed", "error");
+        console.error("Registration error:", data);
       }
-    } catch (err: any) {
-      console.error("Signup error:", err);
-      showNotification(err.message || "Registration failed. Please try again.", "error");
+    } catch (err) {
+      console.error("Signup exception:", err);
+      showNotification("Network error! Please check your connection.", "error");
     }
   };
 
-  // Admin add user handler
-  const handleAdminAddUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!addFirstName || !addLastName || !addEmail || !addDepartment || !addDateStarted) {
-      showNotification("Please fill all required fields", "error");
-      return;
-    }
-
-    const matricNumber = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-
-    const payload = {
-      firstName: addFirstName.trim(),
-      lastName: addLastName.trim(),
-      email: addEmail.trim(),
-      dateStarted: addDateStarted,
-      department: addDepartment,
-      matricNumber,
-      profileImage: addProfileImage || ""
-    };
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/auth/admin/add-user`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || data.errors?.join(", ") || `Failed to add user (${res.status})`);
-      }
-
-      if (data.user) {
-        const tempPassword = data.temporaryPassword || Math.random().toString(36).slice(-8);
-        
-        showNotification(
-          <div style={{ textAlign: 'left' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <FaCheck style={{ color: '#4caf50' }} />
-              <span style={{ fontWeight: 'bold' }}>User Added Successfully!</span>
-            </div>
-            
-            {/* Matric Number */}
-            <div style={{
-              background: '#f8f9fa',
-              padding: '16px',
-              borderRadius: '8px',
-              border: '1px solid #e9ecef',
-              margin: '8px 0'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontWeight: 'bold', color: '#495057' }}>Matric Number:</span>
-                <button
-                  onClick={() => copyToClipboard(data.user.matricNumber, "matric")}
-                  style={{
-                    background: 'none',
-                    border: '1px solid #ddd',
-                    cursor: 'pointer',
-                    color: '#666',
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    transition: 'all 0.2s ease'
-                  }}
-                  title="Copy matric number"
-                >
-                  {copiedMatric === data.user.matricNumber ? (
-                    <FaCheck style={{ color: '#4caf50' }} />
-                  ) : (
-                    <FaCopy style={{ color: '#666' }} />
-                  )}
-                </button>
-              </div>
-              <code style={{
-                background: '#f1f1f1',
-                padding: '8px 12px',
-                borderRadius: '4px',
-                fontFamily: 'Courier New, monospace',
-                fontWeight: 'bold',
-                color: '#28a745',
-                fontSize: '18px',
-                display: 'block',
-                textAlign: 'center'
-              }}>
-                {data.user.matricNumber}
-              </code>
-            </div>
-            
-            {/* Temporary Password */}
-            <div style={{
-              background: '#fff3e0',
-              padding: '16px',
-              borderRadius: '8px',
-              border: '1px solid #ffcc80',
-              margin: '8px 0'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontWeight: 'bold', color: '#e65100' }}>Temporary Password:</span>
-                <button
-                  onClick={() => copyToClipboard(tempPassword, "password")}
-                  style={{
-                    background: 'none',
-                    border: '1px solid #ffcc80',
-                    cursor: 'pointer',
-                    color: '#e65100',
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    transition: 'all 0.2s ease'
-                  }}
-                  title="Copy password"
-                >
-                  {copiedPassword === tempPassword ? (
-                    <FaCheck style={{ color: '#f57c00' }} />
-                  ) : (
-                    <FaCopy style={{ color: '#f57c00' }} />
-                  )}
-                </button>
-              </div>
-              <code style={{
-                background: '#ffe0b2',
-                padding: '8px 12px',
-                borderRadius: '4px',
-                fontFamily: 'Courier New, monospace',
-                fontWeight: 'bold',
-                color: '#f57c00',
-                fontSize: '18px',
-                display: 'block',
-                textAlign: 'center'
-              }}>
-                {tempPassword}
-              </code>
-            </div>
-            
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '14px',
-              color: '#dc3545',
-              fontWeight: 'bold',
-              background: '#f8d7da',
-              padding: '12px',
-              borderRadius: '8px',
-              marginTop: '8px'
-            }}>
-              <svg style={{ width: '20px', height: '20px' }} fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-              <span>Share both matric number and password with the user!</span>
-            </div>
-          </div>,
-          "success",
-          10000
-        );
-
-        // Reset form
-        setAddFirstName("");
-        setAddLastName("");
-        setAddEmail("");
-        setAddDepartment("");
-        setAddDateStarted("");
-        setAddProfileImage("");
-        setShowAddUserModal(false);
-
-        // Refresh users list
-        fetchAllUsers();
-      }
-    } catch (err: any) {
-      console.error("Add user error:", err);
-      showNotification(err.message || "Failed to add user. Please try again.", "error");
-    }
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isAdminAdd: boolean = false) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        if (isAdminAdd) {
-          setAddProfileImage(reader.result as string);
-        } else {
-          setProfileImage(reader.result as string);
-        }
+        setProfileImage(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -527,13 +225,8 @@ const App = () => {
     try {
       const res = await fetch(`${API_BASE_URL}/users`);
       const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to fetch users");
-      }
-      
-      if (data.users) {
-        setAllUsers(data.users);
+      if (res.ok) {
+        setAllUsers(data.users || []);
       }
     } catch (err) {
       console.error(err);
@@ -542,33 +235,25 @@ const App = () => {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (userId === user?._id) {
-      showNotification("You cannot delete your own account!", "error");
-      return;
-    }
-
-    if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+    if (!confirm("Are you sure you want to delete this user?")) {
       return;
     }
 
     try {
       const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to delete user");
-      }
-
-      if (data.success || data.message) {
+      if (res.ok) {
         showNotification("User deleted successfully", "success");
         fetchAllUsers();
+      } else {
+        const data = await res.json();
+        showNotification(data.message || "Failed to delete user", "error");
       }
     } catch (err) {
       console.error(err);
-      showNotification("Failed to delete user", "error");
+      showNotification("Network error! Please try again.", "error");
     }
   };
 
@@ -582,17 +267,6 @@ const App = () => {
     setUser(null);
     setAllUsers([]);
     showNotification("Logged out successfully", "success");
-  };
-
-  // Quick admin login
-  const handleQuickAdminLogin = () => {
-    setLoginEmail(ADMIN_SEED.email);
-    setLoginMatricNumber(ADMIN_SEED.matricNumber);
-    setShowAdminLogin(false);
-    setTimeout(() => {
-      const loginBtn = document.querySelector('button[onClick*="handleLogin"]');
-      if (loginBtn) (loginBtn as HTMLButtonElement).click();
-    }, 100);
   };
 
   if (loading) {
@@ -623,57 +297,44 @@ const App = () => {
             <h2>Ibadan Polytechnic</h2>
             <span className="id-title">Student ID</span>
           </div>
-
           <div className="id-card-body">
             <div className="avatar-section">
-              <img 
-                src={user.profileImage || defaultAvatar} 
-                alt="Avatar" 
-                className="avatar" 
-              />
+              <img src={user.profileImage || defaultAvatar} alt="Avatar" className="avatar" />
             </div>
-
             <div className="details-section">
               <p>
-                <FaUser className="icon" />
-                <span>{user.firstName} {user.lastName}</span>
+                <FontAwesomeIcon icon={faUser} /> {user.firstName} {user.lastName}
               </p>
               <p>
-                <FaEnvelope className="icon" />
-                <span>{user.email}</span>
+                <FontAwesomeIcon icon={faEnvelope} /> {user.email}
               </p>
               {user.matricNumber && (
                 <p className="matric-row">
-                  <FaIdCard className="icon" />
+                  <FontAwesomeIcon icon={faUser} /> 
+                  <span className="matric-label">Matric:</span>
                   <span className="matric-number">{user.matricNumber}</span>
-                  <button
+                  <button 
                     className="copy-btn"
-                    onClick={() => copyToClipboard(user.matricNumber!, "matric")}
+                    onClick={() => copyToClipboard(user.matricNumber!)}
                     title="Copy matric number"
                   >
-                    {copiedMatric === user.matricNumber ? <FaCheck /> : <FaCopy />}
+                    <FontAwesomeIcon icon={copiedMatric === user.matricNumber ? faCheck : faCopy} />
                   </button>
                 </p>
               )}
               {user.department && (
                 <p>
-                  <FaGraduationCap className="icon" />
-                  <span>{user.department}</span>
+                  <FontAwesomeIcon icon={faUser} /> {user.department}
                 </p>
               )}
               <p>
-                <FaCalendarAlt className="icon" />
-                <span>{new Date(user.dateStarted).toLocaleDateString()}</span>
+                <FontAwesomeIcon icon={faCalendar} /> {new Date(user.dateStarted).toLocaleDateString()}
               </p>
             </div>
           </div>
-
           <div className="id-card-footer">
             <div className="barcode"></div>
-            <button onClick={handleLogout}>
-              <FaSignOutAlt className="inline mr-2" />
-              Logout
-            </button>
+            <button onClick={handleLogout}>Logout</button>
           </div>
         </div>
       </div>
@@ -682,8 +343,8 @@ const App = () => {
 
   // ADMIN DASHBOARD
   if (user && user.role === "admin") {
-    const filteredUsers = selectedDepartment === "all"
-      ? allUsers
+    const filteredUsers = selectedDepartment === "all" 
+      ? allUsers 
       : allUsers.filter(u => u.department === selectedDepartment);
 
     const departmentCounts = DEPARTMENTS.map(dept => ({
@@ -702,208 +363,19 @@ const App = () => {
           </div>
         )}
 
-        {/* Add User Modal */}
-        {showAddUserModal && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.7)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1000,
-            padding: '20px'
-          }}>
-            <div style={{
-              background: 'white',
-              borderRadius: '20px',
-              padding: '30px',
-              maxWidth: '500px',
-              width: '100%',
-              maxHeight: '90vh',
-              overflowY: 'auto'
-            }}>
-              <h3 style={{ marginBottom: '20px', color: '#18ab18', fontSize: '24px' }}>Add New User</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <input
-                  type="text"
-                  placeholder="First Name *"
-                  value={addFirstName}
-                  onChange={(e) => setAddFirstName(e.target.value)}
-                  style={{
-                    padding: '12px',
-                    border: '2px solid #ccc',
-                    borderRadius: '8px',
-                    fontSize: '15px'
-                  }}
-                />
-                <input
-                  type="text"
-                  placeholder="Last Name *"
-                  value={addLastName}
-                  onChange={(e) => setAddLastName(e.target.value)}
-                  style={{
-                    padding: '12px',
-                    border: '2px solid #ccc',
-                    borderRadius: '8px',
-                    fontSize: '15px'
-                  }}
-                />
-                <input
-                  type="email"
-                  placeholder="Email *"
-                  value={addEmail}
-                  onChange={(e) => setAddEmail(e.target.value)}
-                  style={{
-                    padding: '12px',
-                    border: '2px solid #ccc',
-                    borderRadius: '8px',
-                    fontSize: '15px'
-                  }}
-                />
-                <select
-                  value={addDepartment}
-                  onChange={(e) => setAddDepartment(e.target.value)}
-                  style={{
-                    padding: '12px',
-                    border: '2px solid #ccc',
-                    borderRadius: '8px',
-                    fontSize: '15px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <option value="">Select Department *</option>
-                  {DEPARTMENTS.map((dept) => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
-                </select>
-                <div>
-                  <label style={{ fontSize: '14px', color: '#666', fontWeight: '500', marginBottom: '8px', display: 'block' }}>Date Started *</label>
-                  <input
-                    type="date"
-                    value={addDateStarted}
-                    onChange={(e) => setAddDateStarted(e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    style={{
-                      padding: '12px',
-                      border: '2px solid #ccc',
-                      borderRadius: '8px',
-                      fontSize: '15px',
-                      width: '100%'
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontSize: '14px', color: '#666', fontWeight: '500', marginBottom: '8px', display: 'block' }}>Profile Image (Optional)</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, true)}
-                    style={{
-                      padding: '10px',
-                      border: '2px dashed #ccc',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      width: '100%'
-                    }}
-                  />
-                  {addProfileImage && (
-                    <div style={{
-                      width: '100px',
-                      height: '100px',
-                      borderRadius: '50%',
-                      overflow: 'hidden',
-                      border: '3px solid #18ab18',
-                      margin: '10px auto 0'
-                    }}>
-                      <img src={addProfileImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                  <button
-                    onClick={handleAdminAddUser}
-                    style={{
-                      flex: 1,
-                      padding: '14px',
-                      border: 'none',
-                      background: '#18ab18',
-                      color: 'white',
-                      fontWeight: 'bold',
-                      fontSize: '16px',
-                      borderRadius: '10px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <FaPlus style={{ display: 'inline', marginRight: '8px' }} />
-                    Add User
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowAddUserModal(false);
-                      setAddFirstName("");
-                      setAddLastName("");
-                      setAddEmail("");
-                      setAddDepartment("");
-                      setAddDateStarted("");
-                      setAddProfileImage("");
-                    }}
-                    style={{
-                      flex: 1,
-                      padding: '14px',
-                      border: '2px solid #ccc',
-                      background: 'white',
-                      color: '#666',
-                      fontWeight: 'bold',
-                      fontSize: '16px',
-                      borderRadius: '10px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         <div className="admin-dashboard">
           <div className="dashboard-header">
-            <div>
-              <h2>Admin Dashboard</h2>
-              <p style={{ color: '#666', marginTop: '8px' }}>Welcome, {user.firstName} {user.lastName}</p>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowAddUserModal(true)}
-                className="btn-primary"
-              >
-                <FaPlus className="inline mr-2" />
-                Add User
-              </button>
-              <button
-                onClick={handleLogout}
-                className="btn-danger"
-              >
-                <FaSignOutAlt className="inline mr-2" />
-                Logout
-              </button>
-            </div>
+            <h2>Admin Dashboard</h2>
+            <button onClick={handleLogout}>Logout</button>
           </div>
-
+          
           <div className="dashboard-stats">
             <div className="stat-card">
               <h3>{allUsers.length}</h3>
               <p>Total Users</p>
             </div>
             <div className="stat-card">
-              <h3>{allUsers.filter(u => u.role === "user").length}</h3>
+              <h3>{allUsers.filter(u => u.role === "user" || u.role === "Students").length}</h3>
               <p>Students</p>
             </div>
             <div className="stat-card">
@@ -928,12 +400,11 @@ const App = () => {
             <div className="table-header">
               <h3>All Users</h3>
               <div className="filter-section">
-                <FaFilter className="text-gray-500" />
                 <label>Filter by Department:</label>
-                <select
+                <select 
+                  className="department-filter" 
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="department-filter"
                 >
                   <option value="all">All Departments</option>
                   {DEPARTMENTS.map((dept) => (
@@ -942,7 +413,6 @@ const App = () => {
                 </select>
               </div>
             </div>
-
             <div className="users-table">
               <table>
                 <thead>
@@ -961,11 +431,7 @@ const App = () => {
                   {filteredUsers.map((u, index) => (
                     <tr key={u._id || index}>
                       <td>
-                        <img 
-                          src={u.profileImage || defaultAvatar} 
-                          alt="Avatar" 
-                          className="table-avatar" 
-                        />
+                        <img src={u.profileImage || defaultAvatar} alt="Avatar" className="table-avatar" />
                       </td>
                       <td>{u.firstName} {u.lastName}</td>
                       <td>{u.email}</td>
@@ -973,31 +439,26 @@ const App = () => {
                         <div className="matric-cell">
                           {u.matricNumber || "N/A"}
                           {u.matricNumber && (
-                            <button
+                            <button 
                               className="copy-btn small"
-                              onClick={() => copyToClipboard(u.matricNumber!, "matric")}
+                              onClick={() => copyToClipboard(u.matricNumber!)}
                               title="Copy matric number"
                             >
-                              {copiedMatric === u.matricNumber ? <FaCheck /> : <FaCopy />}
+                              <FontAwesomeIcon icon={copiedMatric === u.matricNumber ? faCheck : faCopy} />
                             </button>
                           )}
                         </div>
                       </td>
                       <td>{u.department || "N/A"}</td>
                       <td>
-                        <span className={`role-badge ${u.role}`}>
-                          {u.role}
-                        </span>
+                        <span className={`role-badge ${u.role}`}>{u.role}</span>
                       </td>
                       <td>{new Date(u.dateStarted).toLocaleDateString()}</td>
                       <td>
-                        <button
-                          onClick={() => handleDeleteUser(u._id!)}
-                          disabled={u._id === user?._id}
-                          title={u._id === user?._id ? "Cannot delete your own account" : "Delete user"}
+                        <button 
                           className="delete-btn"
+                          onClick={() => handleDeleteUser(u._id!)}
                         >
-                          <FaTrash className="inline mr-2" />
                           Delete
                         </button>
                       </td>
@@ -1015,6 +476,982 @@ const App = () => {
   // LOGIN / SIGNUP FORM
   return (
     <div className="container">
+      <style>{`
+        * {
+          padding: 0;
+          margin: 0;
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: "Poppins", sans-serif;
+          background: linear-gradient(250deg, #18ab18, #c7c70d);
+          min-height: 100vh;
+        }
+
+        /* LOADING SCREEN */
+        .loading-screen {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          background: linear-gradient(250deg, #18ab18, #c7c70d);
+          color: white;
+          font-size: 1.5rem;
+          font-weight: bold;
+        }
+
+        .spinner {
+          width: 50px;
+          height: 50px;
+          border: 6px solid rgba(255, 255, 255, 0.3);
+          border-top-color: white;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        /* TOAST NOTIFICATION */
+        .notification {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          min-width: 300px;
+          max-width: 90%;
+          padding: 16px 20px;
+          border-radius: 12px;
+          color: white;
+          font-weight: 600;
+          font-size: 15px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+          z-index: 1000;
+          animation: slideInRight 0.4s ease-out, fadeIn 0.4s ease-out;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          backdrop-filter: blur(10px);
+        }
+
+        .notification.success {
+          background: linear-gradient(135deg, #4caf50, #45a049);
+          border-left: 5px solid #2e7d32;
+        }
+
+        .notification.error {
+          background: linear-gradient(135deg, #f44336, #e53935);
+          border-left: 5px solid #c62828;
+        }
+
+        .notification::before {
+          content: "";
+          display: inline-block;
+          width: 24px;
+          height: 24px;
+          background-size: contain;
+          flex-shrink: 0;
+        }
+
+        .notification.success::before {
+          content: "✓";
+          background: rgba(255, 255, 255, 0.3);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          font-weight: bold;
+        }
+
+        .notification.error::before {
+          content: "✕";
+          background: rgba(255, 255, 255, 0.3);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          font-weight: bold;
+        }
+
+        .notification .close {
+          margin-left: auto;
+          cursor: pointer;
+          font-size: 20px;
+          font-weight: bold;
+          opacity: 0.8;
+          transition: opacity 0.3s ease;
+          padding: 0 5px;
+          flex-shrink: 0;
+        }
+
+        .notification .close:hover {
+          opacity: 1;
+          transform: scale(1.1);
+        }
+
+        @keyframes slideInRight {
+          from {
+            transform: translateX(400px);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+
+        /* CONTAINER & WRAPPER */
+        .container {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          padding: 20px;
+          background: linear-gradient(250deg, #18ab18, #c7c70d);
+        }
+
+        .wrapper {
+          width: 100%;
+          max-width: 800px;
+        }
+
+        .Hero {
+          background: #fff;
+          padding: 40px 30px;
+          border-radius: 20px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
+          position: relative;
+          animation: popUp 0.6s ease;
+        }
+
+        .image {
+          display: flex;
+          justify-content: center;
+          margin-bottom: 20px;
+        }
+
+        .image img {
+          width: 70px;
+          height: auto;
+        }
+
+        /* NAVIGATION */
+        nav {
+          display: flex;
+          justify-content: space-around;
+          margin-bottom: 30px;
+          border-bottom: 2px solid #e0e0e0;
+          padding-bottom: 10px;
+        }
+
+        nav a {
+          color: #444;
+          font-weight: 600;
+          text-decoration: none;
+          position: relative;
+          transition: color 0.3s ease;
+          padding: 8px 20px;
+          cursor: pointer;
+        }
+
+        nav a.active {
+          color: #18ab18;
+        }
+
+        nav a::after {
+          content: "";
+          position: absolute;
+          bottom: -12px;
+          left: 0;
+          width: 0;
+          height: 3px;
+          background: #18ab18;
+          transition: width 0.3s ease;
+          border-radius: 2px;
+        }
+
+        nav a.active::after,
+        nav a:hover::after {
+          width: 100%;
+        }
+
+        /* FORMS */
+        .form-container {
+          width: 100%;
+          overflow: hidden;
+          position: relative;
+        }
+
+        .form-wrapper {
+          display: flex;
+          transition: transform 0.6s ease-in-out;
+          width: 200%;
+        }
+
+        .form-wrapper.shift-right {
+          transform: translateX(-50%);
+        }
+
+        .login, .sign-up {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+          width: 50%;
+          padding: 0 20px;
+          transition: opacity 0.5s ease;
+        }
+
+        h3 {
+          text-align: center;
+          margin-bottom: 10px;
+          color: #333;
+          font-size: 24px;
+        }
+
+        .input {
+          display: flex;
+          align-items: center;
+          border-bottom: 2px solid #ccc;
+          padding: 10px 5px;
+          gap: 10px;
+          transition: border-color 0.3s ease;
+        }
+
+        .input:hover,
+        .input:focus-within {
+          border-bottom: 2px solid #18ab18;
+        }
+
+        .input input {
+          border: none;
+          outline: none;
+          flex: 1;
+          padding: 8px;
+          font-size: 15px;
+          background: transparent;
+        }
+
+        .input svg {
+          color: #555;
+          transition: all 0.3s ease;
+          font-size: 18px;
+          cursor: pointer;
+        }
+
+        .input:hover svg,
+        .input:focus-within svg {
+          transform: scale(1.1);
+          color: #18ab18;
+        }
+
+        /* Select Dropdown */
+        .select-wrapper {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .select-wrapper label {
+          font-size: 14px;
+          color: #666;
+          font-weight: 500;
+        }
+
+        .role-select {
+          padding: 12px;
+          border: 2px solid #ccc;
+          border-radius: 8px;
+          font-size: 15px;
+          background: white;
+          cursor: pointer;
+          transition: border-color 0.3s ease;
+          font-family: "Poppins", sans-serif;
+        }
+
+        .role-select:focus {
+          outline: none;
+          border-color: #18ab18;
+        }
+
+        .role-select:hover {
+          border-color: #18ab18;
+        }
+
+        /* Image Upload */
+        .image-upload-wrapper {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .image-upload-wrapper label {
+          font-size: 14px;
+          color: #666;
+          font-weight: 500;
+        }
+
+        .file-input {
+          padding: 10px;
+          border: 2px dashed #ccc;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: border-color 0.3s ease;
+          font-size: 14px;
+        }
+
+        .file-input:hover {
+          border-color: #18ab18;
+        }
+
+        .image-preview {
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          overflow: hidden;
+          border: 3px solid #18ab18;
+          margin: 0 auto;
+        }
+
+        .image-preview img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        button {
+          padding: 14px;
+          border: none;
+          background: #18ab18;
+          color: white;
+          font-weight: bold;
+          font-size: 16px;
+          border-radius: 10px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(24, 171, 24, 0.3);
+        }
+
+        button:hover {
+          background: #12901a;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(24, 171, 24, 0.4);
+        }
+
+        button:active {
+          transform: translateY(0);
+        }
+
+        .date-input {
+          border: 2px solid #ccc;
+          border-radius: 8px;
+          padding: 10px;
+          font-size: 15px;
+          transition: border-color 0.3s ease;
+          width: 100%;
+        }
+
+        .date-input:focus {
+          outline: none;
+          border-color: #18ab18;
+        }
+
+        .login p, .sign-up p {
+          margin: -10px 0 -10px 0;
+          font-size: 14px;
+          color: #666;
+          font-weight: 500;
+        }
+
+        .fade-in {
+          opacity: 1;
+          animation: fadeIn 0.6s ease;
+        }
+
+        .fade-out {
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        /* ID CARD */
+        .id-card-real {
+          width: 100%;
+          max-width: 420px;
+          background: linear-gradient(to bottom, #fff, #f8f8f8);
+          border-radius: 20px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+          overflow: hidden;
+          text-align: center;
+          padding-bottom: 20px;
+          margin: 0 auto;
+        }
+
+        .id-card-header {
+          background: linear-gradient(135deg, #18ab18, #15951d);
+          color: white;
+          padding: 25px 20px;
+          position: relative;
+          min-height: 100px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .id-card-header h2 {
+          margin: 8px 0 5px 0;
+          font-size: 22px;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .id-card-header .id-title {
+          font-size: 14px;
+          opacity: 0.9;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+        }
+
+        .school-logo {
+          width: 60px;
+          height: 60px;
+          position: absolute;
+          top: 15px;
+          left: 15px;
+          border-radius: 10px;
+          object-fit: cover;
+          border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .id-card-body {
+          display: flex;
+          padding: 25px 20px;
+          gap: 20px;
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+
+        .avatar-section {
+          flex-shrink: 0;
+        }
+
+        .avatar-section .avatar {
+          width: 90px;
+          height: 90px;
+          border-radius: 50%;
+          border: 3px solid #18ab18;
+          object-fit: cover;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .details-section {
+          text-align: left;
+          font-size: 15px;
+          flex: 1;
+          min-width: 200px;
+        }
+
+        .details-section p {
+          margin: 10px 0;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: #333;
+          word-break: break-word;
+        }
+
+        .details-section svg {
+          color: #18ab18;
+          flex-shrink: 0;
+        }
+
+        .id-card-footer {
+          margin-top: 15px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 0 20px;
+        }
+
+        .id-card-footer button {
+          width: 120px;
+          margin-top: 15px;
+          padding: 12px;
+        }
+
+        .barcode {
+          width: 85%;
+          max-width: 280px;
+          height: 35px;
+          background: repeating-linear-gradient(
+            90deg,
+            #000,
+            #000 2px,
+            #fff 2px,
+            #fff 4px
+          );
+          margin: 0 auto;
+          border-radius: 6px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ADMIN DASHBOARD */
+        .admin-dashboard {
+          width: 100%;
+          max-width: 1400px;
+          background: white;
+          border-radius: 20px;
+          padding: 35px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+          animation: popUp 0.6s ease;
+        }
+
+        .dashboard-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 35px;
+          padding-bottom: 25px;
+          border-bottom: 3px solid #e0e0e0;
+        }
+
+        .dashboard-header h2 {
+          font-size: 32px;
+          color: #18ab18;
+          font-weight: 700;
+        }
+
+        .dashboard-header button {
+          width: auto;
+          padding: 12px 28px;
+          background: linear-gradient(135deg, #f44336, #e53935);
+        }
+
+        .dashboard-header button:hover {
+          background: linear-gradient(135deg, #e53935, #c62828);
+        }
+
+        .dashboard-stats {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 25px;
+          margin-bottom: 45px;
+        }
+
+        .stat-card {
+          background: linear-gradient(135deg, #18ab18, #15951d);
+          color: white;
+          padding: 30px;
+          border-radius: 18px;
+          text-align: center;
+          box-shadow: 0 6px 18px rgba(24, 171, 24, 0.3);
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 12px 24px rgba(24, 171, 24, 0.4);
+        }
+
+        .stat-card h3 {
+          font-size: 42px;
+          margin-bottom: 10px;
+          color: white;
+          font-weight: 700;
+        }
+
+        .stat-card p {
+          font-size: 17px;
+          opacity: 0.95;
+          font-weight: 500;
+        }
+
+        /* Department Statistics */
+        .department-stats {
+          margin-bottom: 40px;
+          background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+          padding: 30px;
+          border-radius: 18px;
+        }
+
+        .department-stats h3 {
+          font-size: 24px;
+          color: #333;
+          margin-bottom: 20px;
+          text-align: left;
+          font-weight: 600;
+        }
+
+        .department-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+          gap: 18px;
+        }
+
+        .department-card {
+          background: white;
+          padding: 20px;
+          border-radius: 12px;
+          text-align: center;
+          box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+          transition: all 0.3s ease;
+          border: 2px solid transparent;
+        }
+
+        .department-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+          border-color: #18ab18;
+        }
+
+        .department-card h4 {
+          font-size: 28px;
+          color: #18ab18;
+          margin-bottom: 8px;
+          font-weight: 700;
+        }
+
+        .department-card p {
+          font-size: 13px;
+          color: #666;
+          font-weight: 500;
+          line-height: 1.4;
+        }
+
+        .users-table-container {
+          margin-top: 35px;
+        }
+
+        .table-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 25px;
+          flex-wrap: wrap;
+          gap: 20px;
+        }
+
+        .table-header h3 {
+          font-size: 24px;
+          color: #333;
+          text-align: left;
+          font-weight: 600;
+        }
+
+        .filter-section {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .filter-section label {
+          font-size: 15px;
+          color: #666;
+          font-weight: 500;
+        }
+
+        .department-filter {
+          padding: 10px 16px;
+          border: 2px solid #ccc;
+          border-radius: 10px;
+          font-size: 15px;
+          background: white;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          font-family: "Poppins", sans-serif;
+          min-width: 200px;
+        }
+
+        .department-filter:focus {
+          outline: none;
+          border-color: #18ab18;
+          box-shadow: 0 0 0 3px rgba(24, 171, 24, 0.1);
+        }
+
+        .department-filter:hover {
+          border-color: #18ab18;
+        }
+
+        .users-table {
+          overflow-x: auto;
+          border-radius: 15px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          background: white;
+          min-width: 900px;
+        }
+
+        thead {
+          background: linear-gradient(135deg, #18ab18, #15951d);
+          color: white;
+        }
+
+        thead th {
+          padding: 18px 15px;
+          text-align: left;
+          font-weight: 600;
+          font-size: 14px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        tbody tr {
+          border-bottom: 1px solid #e0e0e0;
+          transition: background 0.3s ease;
+        }
+
+        tbody tr:hover {
+          background: #f8f9fa;
+        }
+
+        tbody td {
+          padding: 16px 15px;
+          font-size: 14px;
+          color: #333;
+        }
+
+        .table-avatar {
+          width: 45px;
+          height: 45px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 2px solid #18ab18;
+        }
+
+        .role-badge {
+          padding: 6px 14px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 600;
+          text-transform: uppercase;
+          display: inline-block;
+        }
+
+        .role-badge.user,
+        .role-badge.Students {
+          background: #e3f2fd;
+          color: #1976d2;
+        }
+
+        .role-badge.admin {
+          background: #fff3e0;
+          color: #f57c00;
+        }
+
+        .delete-btn {
+          padding: 8px 18px;
+          background: linear-gradient(135deg, #f44336, #e53935);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 600;
+          transition: all 0.3s ease;
+          box-shadow: 0 3px 8px rgba(244, 67, 54, 0.3);
+        }
+
+        .delete-btn:hover {
+          background: linear-gradient(135deg, #e53935, #c62828);
+          transform: translateY(-2px);
+          box-shadow: 0 5px 12px rgba(244, 67, 54, 0.4);
+        }
+
+        /* Copy button styles */
+        .copy-btn {
+          background: none;
+          border: none;
+          cursor: pointer;
+          color: #007bff;
+          margin-left: 8px;
+          padding: 4px;
+          border-radius: 4px;
+          transition: all 0.2s ease;
+          box-shadow: none;
+        }
+
+        .copy-btn:hover {
+          background-color: #f8f9fa;
+          color: #0056b3;
+        }
+
+        .copy-btn.small {
+          padding: 2px;
+          margin-left: 4px;
+        }
+
+        .copy-matric-btn {
+          background: none;
+          border: 1px solid #ddd;
+          cursor: pointer;
+          color: #666;
+          margin-left: 8px;
+          padding: 4px 8px;
+          border-radius: 4px;
+          transition: all 0.2s ease;
+          box-shadow: none;
+        }
+
+        .copy-matric-btn:hover {
+          background-color: #f8f9fa;
+          border-color: #007bff;
+          color: #007bff;
+        }
+
+        /* Matric number display styles */
+        .matric-success-message {
+          text-align: left;
+        }
+
+        .matric-number-display {
+          display: flex;
+          align-items: center;
+          background: #f8f9fa;
+          padding: 8px 12px;
+          border-radius: 6px;
+          margin: 8px 0;
+          border: 1px solid #e9ecef;
+        }
+
+        .matric-label {
+          font-weight: bold;
+          margin-right: 8px;
+          color: #495057;
+        }
+
+        .matric-value {
+          font-family: 'Courier New', monospace;
+          font-weight: bold;
+          color: #28a745;
+          margin-right: auto;
+        }
+
+        .matric-warning {
+          font-size: 0.9em;
+          color: #dc3545;
+          margin: 4px 0 0 0;
+          font-weight: bold;
+        }
+
+        /* Matric row in ID card */
+        .matric-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .matric-number {
+          font-family: 'Courier New', monospace;
+          font-weight: bold;
+        }
+
+        /* Matric cell in admin table */
+        .matric-cell {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes popUp {
+          from {
+            transform: scale(0.9);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .Hero {
+            padding: 30px 20px;
+            border-radius: 15px;
+          }
+
+          .notification {
+            top: 10px;
+            right: 10px;
+            left: 10px;
+            min-width: auto;
+            max-width: none;
+            font-size: 14px;
+            padding: 14px 16px;
+          }
+
+          .form-wrapper {
+            width: 100%;
+          }
+
+          .form-wrapper.shift-right {
+            transform: none;
+          }
+
+          .login, .sign-up {
+            width: 100%;
+            padding: 0 10px;
+          }
+
+          .login.fade-out,
+          .sign-up.fade-out {
+            display: none;
+          }
+
+          .id-card-body {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+          }
+
+          .details-section {
+            text-align: center;
+          }
+
+          .details-section p {
+            justify-content: center;
+          }
+
+          .admin-dashboard {
+            padding: 20px;
+          }
+
+          .dashboard-header {
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+          }
+
+          .dashboard-header button {
+            width: 100%;
+          }
+
+          .dashboard-stats {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
       <div className="wrapper">
         <div className="Hero">
           <div className="image">
@@ -1030,326 +1467,141 @@ const App = () => {
             </div>
           )}
 
-          {/* Role Selection */}
-          <div style={{ marginBottom: '32px' }}>
-            <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
-              <button
-                onClick={() => {
-                  setLoginRole("student");
-                  setShowAdminLogin(false);
-                }}
-                style={{
-                  flex: 1,
-                  padding: '12px 24px',
-                  borderRadius: '12px',
-                  fontWeight: '600',
-                  fontSize: '16px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  ...(loginRole === "student"
-                    ? {
-                        background: '#18ab18',
-                        color: 'white',
-                        boxShadow: '0 4px 12px rgba(24, 171, 24, 0.3)'
-                      }
-                    : {
-                        background: '#f5f5f5',
-                        color: '#444',
-                        border: '1px solid #ddd'
-                      })
-                }}
-              >
-                <FaGraduationCap style={{ display: 'inline', marginRight: '8px' }} />
-                Student Login
-              </button>
-              <button
-                onClick={() => {
-                  setLoginRole("admin");
-                  setShowAdminLogin(true);
-                }}
-                style={{
-                  flex: 1,
-                  padding: '12px 24px',
-                  borderRadius: '12px',
-                  fontWeight: '600',
-                  fontSize: '16px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  ...(loginRole === "admin"
-                    ? {
-                        background: '#2196f3',
-                        color: 'white',
-                        boxShadow: '0 4px 12px rgba(33, 150, 243, 0.3)'
-                      }
-                    : {
-                        background: '#f5f5f5',
-                        color: '#444',
-                        border: '1px solid #ddd'
-                      })
-                }}
-              >
-                <FaCrown style={{ display: 'inline', marginRight: '8px' }} />
-                Admin Login
-              </button>
-            </div>
-
-            {showAdminLogin && (
-              <div style={{
-                background: '#e3f2fd',
-                border: '1px solid #bbdefb',
-                borderRadius: '16px',
-                padding: '24px',
-                marginBottom: '24px',
-                animation: 'fadeIn 0.5s ease'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                  <FaKey style={{ color: '#2196f3', fontSize: '20px' }} />
-                  <h4 style={{ fontSize: '18px', fontWeight: '600', color: '#1565c0' }}>Quick Admin Access</h4>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div>
-                      <p style={{ fontWeight: '500', color: '#333', marginBottom: '4px' }}>Admin Email:</p>
-                      <code style={{
-                        background: '#bbdefb',
-                        padding: '4px 12px',
-                        borderRadius: '4px',
-                        fontFamily: 'Courier New, monospace',
-                        color: '#0d47a1'
-                      }}>
-                        {ADMIN_SEED.email}
-                      </code>
-                    </div>
-                    <button
-                      onClick={() => copyToClipboard(ADMIN_SEED.email, "matric")}
-                      style={{
-                        background: 'none',
-                        border: '1px solid #bbdefb',
-                        cursor: 'pointer',
-                        padding: '8px',
-                        borderRadius: '4px',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      <FaCopy style={{ color: '#2196f3' }} />
-                    </button>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div>
-                      <p style={{ fontWeight: '500', color: '#333', marginBottom: '4px' }}>Admin Matric:</p>
-                      <code style={{
-                        background: '#bbdefb',
-                        padding: '4px 12px',
-                        borderRadius: '4px',
-                        fontFamily: 'Courier New, monospace',
-                        color: '#0d47a1'
-                      }}>
-                        {ADMIN_SEED.matricNumber}
-                      </code>
-                    </div>
-                    <button
-                      onClick={() => copyToClipboard(ADMIN_SEED.matricNumber, "matric")}
-                      style={{
-                        background: 'none',
-                        border: '1px solid #bbdefb',
-                        cursor: 'pointer',
-                        padding: '8px',
-                        borderRadius: '4px',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      <FaCopy style={{ color: '#2196f3' }} />
-                    </button>
-                  </div>
-                  <button
-                    onClick={handleQuickAdminLogin}
-                    style={{
-                      width: '100%',
-                      background: '#2196f3',
-                      color: 'white',
-                      fontWeight: '600',
-                      fontSize: '16px',
-                      padding: '12px',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      transition: 'background 0.3s ease',
-                      marginTop: '16px'
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.background = '#1976d2'}
-                    onMouseOut={(e) => e.currentTarget.style.background = '#2196f3'}
-                  >
-                    <FaCrown style={{ display: 'inline', marginRight: '8px' }} />
-                    Login as Administrator
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
           <nav>
-            <button
-              onClick={() => setActiveForm("login")}
-              className={`nav-link ${activeForm === "login" ? "active" : ""}`}
+            <a 
+              href="#" 
+              className={activeForm === "login" ? "active" : ""} 
+              onClick={(e) => { e.preventDefault(); setActiveForm("login"); }}
             >
               Login
-            </button>
-            <button
-              onClick={() => setActiveForm("signup")}
-              className={`nav-link ${activeForm === "signup" ? "active" : ""}`}
+            </a>
+            <a 
+              href="#" 
+              className={activeForm === "signup" ? "active" : ""} 
+              onClick={(e) => { e.preventDefault(); setActiveForm("signup"); }}
             >
               Sign-Up
-            </button>
+            </a>
           </nav>
 
-          {activeForm === "login" ? (
-            <form onSubmit={handleLogin} className="space-y-6">
-              <h3>{loginRole === "admin" ? "Admin Login" : "Student Login"}</h3>
-              
-              <div className="input">
-                <FaEnvelope />
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  required
-                />
+          <div className="form-container">
+            <div className={`form-wrapper ${activeForm === "signup" ? "shift-right" : ""}`}>
+              <div className={`login ${activeForm === "login" ? "fade-in" : "fade-out"}`}>
+                <h3>Log In</h3>
+                <div className="input">
+                  <FontAwesomeIcon icon={faEnvelope} />
+                  <input 
+                    type="email" 
+                    placeholder="Email" 
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    autoComplete="email"
+                  />
+                </div>
+
+                <div className="input">
+                  <FontAwesomeIcon icon={faUser} />
+                  <input 
+                    type="text" 
+                    placeholder="Matric Number" 
+                    value={loginMatricNumber}
+                    onChange={(e) => setLoginMatricNumber(e.target.value)}
+                    maxLength={10}
+                  />
+                </div>
+
+                <div className="button">
+                  <button onClick={handleLogin}>Log In</button>
+                </div>
               </div>
 
-              <div className="input">
-                <FaIdCard />
-                <input
-                  type="text"
-                  placeholder="Matric Number"
-                  value={loginMatricNumber}
-                  onChange={(e) => setLoginMatricNumber(e.target.value)}
-                  required
-                />
-              </div>
+              <div className={`sign-up ${activeForm === "signup" ? "fade-in" : "fade-out"}`}>
+                <h3>Sign Up</h3>
+                <div className="input">
+                  <FontAwesomeIcon icon={faUser} />
+                  <input 
+                    type="text" 
+                    placeholder="First Name" 
+                    value={signupFirstName}
+                    onChange={(e) => setSignupFirstName(e.target.value)}
+                  />
+                </div>
+                <div className="input">
+                  <FontAwesomeIcon icon={faUser} />
+                  <input 
+                    type="text" 
+                    placeholder="Last Name" 
+                    value={signupLastName}
+                    onChange={(e) => setSignupLastName(e.target.value)}
+                  />
+                </div>
+                <div className="input">
+                  <FontAwesomeIcon icon={faEnvelope} />
+                  <input 
+                    type="email" 
+                    placeholder="Email" 
+                    value={signupEmail}
+                    onChange={(e) => setSignupEmail(e.target.value)}
+                  />
+                </div>
+                <div className="input">
+                  <input 
+                    type={showPasswordSignUp ? "text" : "password"} 
+                    placeholder="Password" 
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
+                  />
+                  <FontAwesomeIcon
+                    icon={faEye}
+                    onClick={() => setShowPasswordSignUp(!showPasswordSignUp)}
+                    style={{ cursor: "pointer" }}
+                  />
+                </div>
 
-              <button type="submit" className="btn-primary">
-                {loginRole === "admin" ? (
-                  <>
-                    <FaCrown className="inline mr-2" />
-                    Login as Admin
-                  </>
-                ) : (
-                  "Login as Student"
-                )}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleSignUp} className="space-y-6">
-              <h3>Student Registration</h3>
-              
-              <div className="input">
-                <FaUser />
-                <input
-                  type="text"
-                  placeholder="First Name *"
-                  value={signupFirstName}
-                  onChange={(e) => setSignupFirstName(e.target.value)}
-                  required
-                />
-              </div>
+                <div className="select-wrapper">
+                  <label>Department *</label>
+                  <select 
+                    className="role-select" 
+                    value={signupDepartment}
+                    onChange={(e) => setSignupDepartment(e.target.value)}
+                  >
+                    <option value="">Select Department</option>
+                    {DEPARTMENTS.map((dept) => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="input">
-                <FaUser />
-                <input
-                  type="text"
-                  placeholder="Last Name *"
-                  value={signupLastName}
-                  onChange={(e) => setSignupLastName(e.target.value)}
-                  required
-                />
-              </div>
+                <div className="image-upload-wrapper">
+                  <label htmlFor="profile-image">Profile Image (Optional)</label>
+                  <input 
+                    type="file" 
+                    id="profile-image" 
+                    accept="image/*" 
+                    onChange={handleImageUpload}
+                    className="file-input"
+                  />
+                  {profileImage && (
+                    <div className="image-preview">
+                      <img src={profileImage} alt="Preview" />
+                    </div>
+                  )}
+                </div>
 
-              <div className="input">
-                <FaEnvelope />
-                <input
-                  type="email"
-                  placeholder="Email *"
-                  value={signupEmail}
-                  onChange={(e) => setSignupEmail(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="input">
-                <FaLock />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password (min 6 characters) *"
-                  value={signupPassword}
-                  onChange={(e) => setSignupPassword(e.target.value)}
-                  minLength={6}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: '#555',
-                    padding: '4px'
-                  }}
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </div>
-
-              <div className="select-wrapper">
-                <label>Department *</label>
-                <select
-                  value={signupDepartment}
-                  onChange={(e) => setSignupDepartment(e.target.value)}
-                  className="role-select"
-                  required
-                >
-                  <option value="">Select Department</option>
-                  {DEPARTMENTS.map((dept) => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="image-upload-wrapper">
-                <label>Profile Image (Optional)</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload(e, false)}
-                  className="file-input"
-                />
-                {profileImage && (
-                  <div className="image-preview">
-                    <img src={profileImage} alt="Preview" />
-                  </div>
-                )}
-              </div>
-
-              <div className="select-wrapper">
-                <label>Date Started *</label>
-                <input
-                  type="date"
+                <p>Date Started</p>
+                <input 
+                  type="date" 
+                  className="date-input" 
                   value={dateStarted}
                   onChange={(e) => setDateStarted(e.target.value)}
                   max={new Date().toISOString().split('T')[0]}
-                  className="date-input"
-                  required
                 />
+                <div className="button">
+                  <button onClick={handleSignUp}>Sign Up</button>
+                </div>
               </div>
-
-              <button type="submit" className="btn-primary">
-                Register as Student
-              </button>
-            </form>
-          )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
