@@ -6,8 +6,7 @@ import {
   faEye, 
   faCalendar, 
   faCopy, 
-  faCheck,
-  faSpinner
+  faCheck
 } from "@fortawesome/free-solid-svg-icons";
 import SchoolImg from './assets/ibadan-city.jpeg'
 // API Base URL
