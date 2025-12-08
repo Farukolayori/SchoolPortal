@@ -9,12 +9,11 @@ import {
   faCheck,
   faSpinner
 } from "@fortawesome/free-solid-svg-icons";
-
+import SchoolImg from './assets/ibadan-city.jpeg'
 // API Base URL
 const API_BASE_URL = "https://schoolportal-backend-1.onrender.com/api";
 
 // Default images as placeholders
-const polyimage = "https://images.unsplash.com/photo-1562774053-701939374585?w=400&h=400&fit=crop";
 const defaultAvatar = "https://ui-avatars.com/api/?name=Student&size=200&background=18ab18&color=fff";
 
 // TypeScript interfaces
@@ -1537,7 +1536,7 @@ const App = () => {
 
           <div className="id-card-real">
             <div className="id-card-header">
-              <img src={polyimage} alt="School Logo" className="school-logo" />
+              <img src={SchoolImg} alt="School Logo" className="school-logo" />
               <h2>Ibadan Polytechnic</h2>
               <span className="id-title">Student ID</span>
             </div>
@@ -1732,7 +1731,7 @@ const App = () => {
         <div className="wrapper">
           <div className="Hero">
             <div className="image">
-              <img src={polyimage} alt="School Logo" width={70} />
+              <img src={SchoolImg} alt="School Logo" width={70} />
             </div>
 
             {notification && (
