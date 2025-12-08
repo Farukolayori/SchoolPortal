@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faEnvelope, faEye, faCalendar, faCopy, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { 
+  faUser, 
+  faEnvelope, 
+  faEye, 
+  faCalendar, 
+  faCopy, 
+  faCheck,
+  faSpinner
+} from "@fortawesome/free-solid-svg-icons";
 
 // API Base URL
 const API_BASE_URL = "https://schoolportal-backend-1.onrender.com/api";
@@ -81,6 +89,33 @@ const GlobalStyles = () => (
       to {
         transform: rotate(360deg);
       }
+    }
+
+    /* BUTTON LOADING STATES */
+    .button-loading {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.8;
+    }
+
+    .button-loading .button-text {
+      visibility: hidden;
+    }
+
+    .button-loading::after {
+      content: "";
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      margin: auto;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
     }
 
     /* TOAST NOTIFICATION */
@@ -207,6 +242,12 @@ const GlobalStyles = () => (
     .image img {
       width: 70px;
       height: auto;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
     }
 
     /* NAVIGATION */
@@ -403,9 +444,10 @@ const GlobalStyles = () => (
       cursor: pointer;
       transition: all 0.3s ease;
       box-shadow: 0 4px 12px rgba(24, 171, 24, 0.3);
+      position: relative;
     }
 
-    button:hover {
+    button:hover:not(.button-loading) {
       background: #12901a;
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(24, 171, 24, 0.4);
@@ -1182,6 +1224,12 @@ const App = () => {
   const [copiedMatric, setCopiedMatric] = useState<string | null>(null);
   const [showForgotMatric, setShowForgotMatric] = useState<boolean>(false);
 
+  // Loading states
+  const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
+  const [isSigningUp, setIsSigningUp] = useState<boolean>(false);
+  const [isFetchingMatric, setIsFetchingMatric] = useState<boolean>(false);
+  const [isDeletingUser, setIsDeletingUser] = useState<string | null>(null);
+
   // Login form state
   const [loginEmail, setLoginEmail] = useState<string>("");
   const [loginMatricNumber, setLoginMatricNumber] = useState<string>("");
@@ -1230,6 +1278,8 @@ const App = () => {
       return;
     }
 
+    setIsLoggingIn(true);
+
     try {
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
@@ -1255,6 +1305,8 @@ const App = () => {
     } catch (err) {
       console.error("Login error:", err);
       showNotification("Network error! Check if backend is running.", "error");
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -1265,6 +1317,7 @@ const App = () => {
       return;
     }
 
+    setIsSigningUp(true);
     const matricNumber = Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
     try {
@@ -1324,6 +1377,8 @@ const App = () => {
     } catch (err) {
       console.error("Signup error:", err);
       showNotification("Network error! Please check your connection.", "error");
+    } finally {
+      setIsSigningUp(false);
     }
   };
 
@@ -1336,6 +1391,8 @@ const App = () => {
       showNotification("Please fill in all fields", "error");
       return;
     }
+
+    setIsFetchingMatric(true);
 
     try {
       const res = await fetch(`${API_BASE_URL}/auth/forgot-matric`, {
@@ -1383,6 +1440,8 @@ const App = () => {
     } catch (err) {
       console.error("Forgot matric error:", err);
       showNotification("Network error! Check if backend is running.", "error");
+    } finally {
+      setIsFetchingMatric(false);
     }
   };
 
@@ -1415,6 +1474,8 @@ const App = () => {
       return;
     }
 
+    setIsDeletingUser(userId);
+
     try {
       const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: "DELETE",
@@ -1430,6 +1491,8 @@ const App = () => {
     } catch (err) {
       console.error(err);
       showNotification("Network error! Please try again.", "error");
+    } finally {
+      setIsDeletingUser(null);
     }
   };
 
@@ -1640,10 +1703,13 @@ const App = () => {
                         <td>{new Date(u.dateStarted).toLocaleDateString()}</td>
                         <td>
                           <button 
-                            className="delete-btn"
+                            className={`delete-btn ${isDeletingUser === u._id ? 'button-loading' : ''}`}
                             onClick={() => handleDeleteUser(u._id!)}
+                            disabled={isDeletingUser === u._id}
                           >
-                            Delete
+                            <span className="button-text">
+                              {isDeletingUser === u._id ? 'Deleting...' : 'Delete'}
+                            </span>
                           </button>
                         </td>
                       </tr>
@@ -1707,6 +1773,7 @@ const App = () => {
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                       autoComplete="email"
+                      disabled={isLoggingIn}
                     />
                   </div>
 
@@ -1718,11 +1785,20 @@ const App = () => {
                       value={loginMatricNumber}
                       onChange={(e) => setLoginMatricNumber(e.target.value)}
                       maxLength={10}
+                      disabled={isLoggingIn}
                     />
                   </div>
 
                   <div className="button">
-                    <button onClick={handleLogin}>Log In</button>
+                    <button 
+                      onClick={handleLogin}
+                      className={isLoggingIn ? 'button-loading' : ''}
+                      disabled={isLoggingIn}
+                    >
+                      <span className="button-text">
+                        {isLoggingIn ? 'Logging in...' : 'Log In'}
+                      </span>
+                    </button>
                   </div>
 
                   <div className="forgot-matric-link">
@@ -1741,6 +1817,7 @@ const App = () => {
                       placeholder="First Name" 
                       value={signupFirstName}
                       onChange={(e) => setSignupFirstName(e.target.value)}
+                      disabled={isSigningUp}
                     />
                   </div>
                   <div className="input">
@@ -1750,6 +1827,7 @@ const App = () => {
                       placeholder="Last Name" 
                       value={signupLastName}
                       onChange={(e) => setSignupLastName(e.target.value)}
+                      disabled={isSigningUp}
                     />
                   </div>
                   <div className="input">
@@ -1759,6 +1837,7 @@ const App = () => {
                       placeholder="Email" 
                       value={signupEmail}
                       onChange={(e) => setSignupEmail(e.target.value)}
+                      disabled={isSigningUp}
                     />
                   </div>
                   <div className="input">
@@ -1767,11 +1846,12 @@ const App = () => {
                       placeholder="Password" 
                       value={signupPassword}
                       onChange={(e) => setSignupPassword(e.target.value)}
+                      disabled={isSigningUp}
                     />
                     <FontAwesomeIcon
                       icon={faEye}
                       onClick={() => setShowPasswordSignUp(!showPasswordSignUp)}
-                      style={{ cursor: "pointer" }}
+                      style={{ cursor: isSigningUp ? 'not-allowed' : 'pointer' }}
                     />
                   </div>
 
@@ -1781,6 +1861,7 @@ const App = () => {
                       className="role-select" 
                       value={signupDepartment}
                       onChange={(e) => setSignupDepartment(e.target.value)}
+                      disabled={isSigningUp}
                     >
                       <option value="">Select Department</option>
                       {DEPARTMENTS.map((dept) => (
@@ -1797,6 +1878,7 @@ const App = () => {
                       accept="image/*" 
                       onChange={handleImageUpload}
                       className="file-input"
+                      disabled={isSigningUp}
                     />
                     {profileImage && (
                       <div className="image-preview">
@@ -1812,9 +1894,18 @@ const App = () => {
                     value={dateStarted}
                     onChange={(e) => setDateStarted(e.target.value)}
                     max={new Date().toISOString().split('T')[0]}
+                    disabled={isSigningUp}
                   />
                   <div className="button">
-                    <button onClick={handleSignUp}>Sign Up</button>
+                    <button 
+                      onClick={handleSignUp}
+                      className={isSigningUp ? 'button-loading' : ''}
+                      disabled={isSigningUp}
+                    >
+                      <span className="button-text">
+                        {isSigningUp ? 'Creating Account...' : 'Sign Up'}
+                      </span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1828,7 +1919,11 @@ const App = () => {
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
                 <h3>Recover Matric Number</h3>
-                <button className="modal-close" onClick={() => setShowForgotMatric(false)}>
+                <button 
+                  className="modal-close" 
+                  onClick={() => setShowForgotMatric(false)}
+                  disabled={isFetchingMatric}
+                >
                   &times;
                 </button>
               </div>
@@ -1845,6 +1940,7 @@ const App = () => {
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
                     autoComplete="email"
+                    disabled={isFetchingMatric}
                   />
                 </div>
 
@@ -1854,20 +1950,31 @@ const App = () => {
                     placeholder="Enter your password" 
                     value={forgotPassword}
                     onChange={(e) => setForgotPassword(e.target.value)}
+                    disabled={isFetchingMatric}
                   />
                   <FontAwesomeIcon
                     icon={faEye}
-                    onClick={() => setShowPasswordForgot(!showPasswordForgot)}
-                    style={{ cursor: "pointer" }}
+                    onClick={() => !isFetchingMatric && setShowPasswordForgot(!showPasswordForgot)}
+                    style={{ cursor: isFetchingMatric ? 'not-allowed' : 'pointer' }}
                   />
                 </div>
 
                 <div className="modal-buttons">
-                  <button className="cancel-btn" onClick={() => setShowForgotMatric(false)}>
+                  <button 
+                    className="cancel-btn" 
+                    onClick={() => setShowForgotMatric(false)}
+                    disabled={isFetchingMatric}
+                  >
                     Cancel
                   </button>
-                  <button onClick={handleForgotMatric}>
-                    Retrieve Matric
+                  <button 
+                    onClick={handleForgotMatric}
+                    className={isFetchingMatric ? 'button-loading' : ''}
+                    disabled={isFetchingMatric}
+                  >
+                    <span className="button-text">
+                      {isFetchingMatric ? 'Retrieving...' : 'Retrieve Matric'}
+                    </span>
                   </button>
                 </div>
               </div>
